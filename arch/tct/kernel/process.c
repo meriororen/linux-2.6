@@ -1,0 +1,161 @@
+/*
+ * (C) Copyright 2007
+ *     Theobroma Systems <www.theobroma-systems.com>
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ */
+
+/*
+ * This file handles the architecture-dependent parts of process handling..
+ */
+
+#include <linux/module.h>
+#include <linux/errno.h>
+#include <linux/sched.h>
+#include <linux/kernel.h>
+#include <linux/mm.h>
+#include <linux/smp.h>
+#include <linux/stddef.h>
+#include <linux/unistd.h>
+#include <linux/ptrace.h>
+#include <linux/slab.h>
+#include <linux/user.h>
+#include <linux/interrupt.h>
+#include <linux/reboot.h>
+#include <linux/fs.h>
+#include <linux/io.h>
+
+
+#include <asm/uaccess.h>
+#include <asm/system.h>
+#include <asm/traps.h>
+#include <asm/setup.h>
+#include <asm/pgtable.h>
+
+#include <asm/hw/milkymist.h>
+
+asmlinkage void ret_from_fork(void);
+
+struct thread_info* tct_current_thread;
+
+/*
+ * The idle loop on TCT
+ */
+static void default_idle(void)
+{
+	while(!need_resched())
+		__asm__ __volatile__("and r0, r0, r0" ::: "memory");
+}
+
+void (*idle)(void) = default_idle;
+
+/*
+ * The idle thread. There's no useful work to be
+ * done, so just try to conserve power and have a
+ * low exit latency (ie sit in a loop waiting for
+ * somebody to say that they'd like to reschedule)
+ */
+void cpu_idle(void)
+{
+	/* endless idle loop with no priority at all */
+	while (1) {
+		idle(); //default idle
+		preempt_enable_no_resched();
+		schedule();
+		preempt_disable();
+	}
+}
+
+void machine_restart(char *__unused)
+{
+	//how does TCT restart a machine?
+}
+
+void machine_halt(void)
+{
+	printk("%s:%d: machine_halt() is not possible on tct\n", __FILE__, __LINE__);
+	for(;;)
+		cpu_relax();
+}
+
+void machine_power_off(void)
+{
+	printk("%s:%d: machine_power_off() is not possible on tct\n", __FILE__, __LINE__);
+	for(;;)
+		cpu_relax();
+}
+
+void show_regs(struct pt_regs * regs)
+{
+	printk("Registers:\n");
+	#define TCTREG(name) printk("%3s : 0x%1x\n", #name, regs->name)
+	TCTREG(r0);  TCTREG(r1);  TCTREG(r2);  TCTREG(r3);  TCTREG(r4);
+	TCTREG(r5);  TCTREG(r6);  TCTREG(r7);  TCTREG(r8);  TCTREG(r9);
+	TCTREG(r10); TCTREG(r11); TCTREG(r12); TCTREG(r13); TCTREG(r14);
+	TCTREG(r15); TCTREG(r16); TCTREG(r17); TCTREG(r18); TCTREG(r19);
+	TCTREG(r20); TCTREG(r21); TCTREG(r22); TCTREG(r23); TCTREG(r24);
+	TCTREG(r25); TCTREG(lnk);  TCTREG(fp);  TCTREG(sp);  TCTREG(bos);
+	TCTREG(brp1);  TCTREG(brp2);
+	#undef TCTREG
+}
+
+static void kernel_thread_helper(int reserved, int (*fn)(void*), void * arg)
+{
+	do_exit(fn(arg));
+}
+
+/*
+ * Create a kernel thread
+ */
+int kernel_thread(int (*fn)(void*), void * arg, unsigned long flags)
+{
+	/* prepare registers from which a child task switch frame will be copied */
+	struct pt_regs regs;
+
+	set_fs(KERNEL_DS);
+
+	memset(&regs, 0, sizeof(regs));
+
+	//printk ("kernel_thread fn=%x arg=%x regs=%x\n", fn, arg, &regs);
+
+	regs.r2 = (unsigned long)fn;
+	regs.r3 = (unsigned long)arg;
+	regs.r5 = (unsigned long)kernel_thread_helper;
+	regs.pt_mode = PT_MODE_KERNEL;
+
+	return do_fork(flags | CLONE_VM | CLONE_UNTRACED, 0, &regs, 0, NULL, NULL);
+}
+
+
+void flush_thread(void)
+{
+	set_fs(USER_DS);
+}
+
+/* no stack unwinding */
+unsigned long get_wchan(struct task_struct *p)
+{
+	return 0;
+}
+
+unsigned long thread_saved_pc(struct task_struct *tsk)
+{
+	return 0;
+}
+
