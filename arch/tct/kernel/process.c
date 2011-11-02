@@ -48,7 +48,7 @@
 #include <asm/setup.h>
 #include <asm/pgtable.h>
 
-#include <asm/hw/milkymist.h>
+#include <asm/hw/tct-board.h>
 
 asmlinkage void ret_from_fork(void);
 

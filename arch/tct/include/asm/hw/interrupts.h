@@ -20,8 +20,7 @@
 
 #define IRQ_UARTRX		(0)
 #define IRQ_UARTTX		(1)
-#define IRQ_GPIO		(2)
-#define IRQ_TIMER0		(3)
-#define IRQ_TIMER1		(4)
+#define IRQ_TIMER0		(2)
+#define IRQ_TIMER1		(3)
 
 #endif

@@ -14,6 +14,6 @@ ENTRY(_start)
 	/* terminate frame pointer */
 	mov	fp, 0
 	
-	call	machine_early_init 		/* inside kernel/setup.c, does bss clearance and initird memory reservation */
+	call	machine_early_init 		/* inside kernel/setup.c */
 	jmp	start_kernel				
 	

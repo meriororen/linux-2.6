@@ -1,0 +1,38 @@
+/dts-v1/;
+/ {
+	compatible = "tct-board";
+	#addres-cells = <1>;
+	#size-cells = <1>;
+	interrupt-parent = <&pic>;
+
+	chosen {
+		bootargs = "root=/dev/root";
+	};
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x00000000 0x80000000>;
+	};
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		cpu@0 {
+			compatible = "tct";
+			reg = <0>;
+			clock-frequency = <80000000>; //8MHz
+		};
+	};
+
+	pic: pic {
+		compatible = "tct-pic";
+		#interrupt-cells = <1>;
+		interrupt-controller;
+	};
+
+	serial@e0000000 {
+		compatible = "uart";
+		reg = <0xe0000000 0x10>;
+		interrupts = <0 1>;
+	};
+}
