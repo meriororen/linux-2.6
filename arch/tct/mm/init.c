@@ -85,12 +85,35 @@ void __init bootmem_init(void)
 	memory_end += PAGE_OFFSET;	
 }
 
+/* 
+ * paging_init() continues the virtual memory environment setup which
+ * was begun by the code in arch/head.S.
+ * The parameters are pointers to where to stick the starting and ending
+ * address of available kernel virtual memory
+ */
+
 void __init paging_init(void)
 {
 	unsigned long zones_size[MAX_NR_ZONES] = {0, };
 
 	zones_size[ZONE_NORMAL] = max_low_pfn;
 	free_area_init(zones_size);
+}
+
+void __init mem_init(void) 
+{
+	high_memory = (void *)__va(max_low_pfn * PAGE_SIZE);
+
+	max_mapnr = num_physpages = max_low_pfn;
+
+	totalram_pages = free_all_bootmem();
+
+	printk(KERN_INFO "Memory available: %luk/%luk RAM, (%dk kernel code, %dk data)\n",
+		nr_free_pages() << (PAGE_SHIFT - 10),
+		max_mapnr << (PAGE_SHIFT - 10),
+		(_etext - _stext) >> 10,
+		(_edata - _etext) >> 10
+		);
 }
 
 

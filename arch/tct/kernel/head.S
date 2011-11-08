@@ -4,7 +4,7 @@
 
 _INIT
 ENTRY(_start)
-	xor	r0, r0, r0 			/* clear r0 */
+	xor	r0, r0, r0 			/* clear r0 , not sure about this. */
 	
 	/* init stack pointer */
 	movh	sp, hi(init_thread_union)

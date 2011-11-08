@@ -1,0 +1,110 @@
+config TCT
+	bool
+	default y
+	select CPU_TCT
+
+config GENERIC_GPIO
+	bool
+
+config MMU
+	bool
+	default n
+
+config VGA_CONSOLE
+	bool
+	default n
+
+config ZONE_DMA_FLAG
+	int
+	default 0
+
+config RWSEM_GENERIC_SPINLOCK
+	bool
+	default y
+
+config GENERIC_ALLOCATOR
+	bool
+	default y
+
+config GENERIC_BUG
+	bool
+	default y
+
+config GENERIC_CALIBRATE_DELAY
+	bool
+	default y
+
+config GENERIC_CLOCKEVENTS
+	bool
+	default y
+
+config GENERIC_CSUM
+	bool
+	default y
+
+config GENERIC_FIND_NEXT_BIT
+	bool
+	default y
+
+config GENERIC_HWEIGHT
+	bool
+	default y
+
+config SELECT_MEMORY_MODEL
+	bool
+	default y
+
+config FLATMEM
+	bool
+	default y
+
+config FLAT_NODE_MEM_MAP
+	bool
+	default y
+
+config NO_IOPORT
+	bool
+	default y
+
+config APM_EMULATION
+	bool
+	default n
+
+source "init/Kconfig"
+
+source "arch/tct/Kconfig.cpu"
+
+source "kernel/time/Kconfig"
+
+source "kernel/Kconfig.hz"
+
+source "mm/Kconfig"
+
+menu "Executable file formats"
+
+source "fs/Kconfig.binfmt"
+
+endmenu
+
+#menu "Power management options"
+
+#config PM
+#	bool "Power Management support"
+#	help
+#	  Support processor power management modes
+#
+#endmenu
+
+source "net/Kconfig"
+
+source "drivers/Kconfig"
+
+source "fs/Kconfig"
+
+#source "arch/tct/Kconfig.debug"
+
+#source "security/Kconfig"
+
+#source "crypto/Kconfig"
+
+#source "lib/Kconfig"

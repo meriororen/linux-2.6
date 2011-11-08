@@ -15,8 +15,12 @@
 
 /*
  * User space process size: 3.75GB. Hardcoded into a few places.
+ * on no-MMU arch, both user processes and the kernel is on the same
+ * memory region. Space available is limited by the amount of physical
+ * memory. Thus, we set TASK_SIZE == amount of total memory (or less)
+ *
  */
-#define TASK_SIZE	(0xF0000000)
+#define TASK_SIZE	(0xF0000000) //need review on SCQEMU
 
 /*
  * Decides where the kernel will search for a free chunk of vm
@@ -40,3 +44,38 @@ struct thread_struct {
 #define task_pt_regs(tsk) ((struct pt_regs *)KSTK_TOS(tsk) - 1)
 #define KSTK_EIP(tsk) 0
 #define KSTK_ESP(tsk) 0
+
+#define INIT_THREAD { \
+	sizeof(init_stack) + (unsigned long) init_stack. 0, \
+	0, \
+	0 \
+}
+
+#define reformat(_regs)		do {} while (0)
+
+/*
+ * Do necessary setup to start up a newly executed thread.
+ */
+extern void start_thread(struct pt_regs * regs, unsigned long pc, unsigned long sp);
+
+/* definition in include/linux/sched.h */
+struct task_struct;
+
+/* Free all resources held by a thread */
+static inline void release_thread(struct task_struct *dead_task)
+{}
+
+/* Free current thread data structures, etc.. */
+static inline void exit_thread(void)
+{}
+
+/* Prepare to copy thread state - unlazy all lazy status */
+#define prepare_to_copy(tsk) do {} while (0)
+
+extern int kernel_thread(int (*fn)(void *), void * arg, unsigned long flags);
+
+
+unsigned long thread_saved_pc(struct task_struct *tsk);
+unsigned long get_wchan(struct task_struct *p);
+
+
