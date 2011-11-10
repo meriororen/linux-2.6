@@ -1,3 +1,15 @@
+/* 
+ * This program is used to generate definitions needed by 
+ * assembly language modules.
+ * 
+ * We use the technique used in the OSF Mach kernel code :
+ * generate asm_statements containing #defines,
+ * compile this file to assembler, and then extract the
+ * #defines from the assembly-language output.
+ */
+
+#define ASM_OFFSETS_C
+
 #include <linux/kbuild.h>
 
 #include <linux/sched.h>

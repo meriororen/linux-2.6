@@ -1,0 +1,24 @@
+asm-offsets.c	: OK	Give access for assembly files into kernel structures, registers
+cpuinfo.c	: OK	Showing cpu(s) info
+dma.c		: IRAN  Give dma access
+early_printk.c	: OK	Define the early_printk(): give access to UART 
+entry.S		: UNFI	System call entry, interrupts
+flat.c		: TODO	Support for binary flat
+gpio.c		: TODO	General purpose I/O
+head.S		: OK	Kernel Startup
+init_task.c	: OK	Init task descriptor	
+irq.c		: UNC	IRQ functions	
+Makefile	: UNC	The Makefile
+module.c	: TODO
+modules.builtin	: TODO
+modules.order	: TODO
+process.c	: UNC
+ptrace.c	: TODO
+setup.c		: UNC	Setup architecture
+signal.c	: TODO	Signal handling
+sys_call_table.c: TODO	System call table
+sys_tct.c	: UNC
+time.c		: TODO
+traps.c		: TODO
+vmlinux.lds	: IRAN
+vmlinux.lds.S	: UNC	Linker script for vmlinux
