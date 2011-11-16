@@ -1,3 +1,9 @@
+/*
+ * From Theobroma Systems' UCLINUX
+ */
+
+
+
 #ifndef _ASM_TCT_PROCESSOR_H
 #define _ASM_TCT_PROCESSOR_H
 
@@ -38,7 +44,7 @@ struct thread_struct {
 	unsigned long usp; 	/* user stack pointer */
 	unsigned long which_stack; /* 0 : kernel stack, 1 : user stack */
 	void *	      debuggerinfo;
-}
+};
 
 #define KSTK_TOS(tsk) ((unsigned long)task_stack_page(tsk) + THREAD_SIZE - 32)
 #define task_pt_regs(tsk) ((struct pt_regs *)KSTK_TOS(tsk) - 1)
@@ -63,19 +69,23 @@ struct task_struct;
 
 /* Free all resources held by a thread */
 static inline void release_thread(struct task_struct *dead_task)
-{}
+{
+}
 
 /* Free current thread data structures, etc.. */
 static inline void exit_thread(void)
-{}
+{
+}
 
 /* Prepare to copy thread state - unlazy all lazy status */
 #define prepare_to_copy(tsk) do {} while (0)
 
 extern int kernel_thread(int (*fn)(void *), void * arg, unsigned long flags);
 
-
 unsigned long thread_saved_pc(struct task_struct *tsk);
 unsigned long get_wchan(struct task_struct *p);
 
+#define cpu_relax()	barrier()
+
+#endif
 
