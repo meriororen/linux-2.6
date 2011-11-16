@@ -3,8 +3,7 @@ BOARD := $(board-y)
 
 export BOARD
 
-cflags-y := -mmultiply-enabled -mdivide-enabled \
-	 -mbarrel-shift-enabled -msign-extend-enabled
+cflags-y := 
 
 KBUILD_AFLAGS += $(cflags-y)
 KBUILD_CFLAGS += $(cflags-y)
@@ -14,7 +13,7 @@ OBJCOPYFLAGS := -O binary -R .note -R .comment -S
 head-y := arch/tct/kernel/head.o arch/tct/kernel/init_task.o
 
 core-y := arch/tct/
-core-y := arch/tct/platforms/
+core-y := arch/tct/boot/
 libs-y := arch/tct/lib/
 
 # some note :

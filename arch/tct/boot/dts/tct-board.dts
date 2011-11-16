@@ -3,7 +3,7 @@
 	compatible = "tct-board";
 	#addres-cells = <1>;
 	#size-cells = <1>;
-	interrupt-parent = <&pic>;
+	interrupt-parent = <&pic>; // We have no PIC?
 
 	chosen {
 		bootargs = "root=/dev/root";

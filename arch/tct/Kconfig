@@ -86,14 +86,14 @@ source "fs/Kconfig.binfmt"
 
 endmenu
 
-#menu "Power management options"
+menu "Power management options"
 
-#config PM
-#	bool "Power Management support"
-#	help
-#	  Support processor power management modes
-#
-#endmenu
+config PM
+	bool "Power Management support"
+	help
+	  Support processor power management modes
+
+endmenu
 
 source "net/Kconfig"
 
