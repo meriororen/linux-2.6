@@ -29,8 +29,8 @@ void output_task_struct_defines(void)
 	DEFINE(TASK_ACTIVE_MM, offsetof(struct task_struct, active_mm));
 
 	COMMENT("offsets into the thread struct in the task struct.");
-	DEFINE(TASK_KSP, offsetof(struct task_struct, thread_ksp));
-	DEFINE(TASK_USP, offsetof(struct task_struct, thread_usp));
+	DEFINE(TASK_KSP, offsetof(struct task_struct, thread.ksp));
+	DEFINE(TASK_USP, offsetof(struct task_struct, thread.usp));
 	DEFINE(TASK_WHICH_STACK, offsetof(struct task_struct, thread.which_stack));
 	BLANK();
 }

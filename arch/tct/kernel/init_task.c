@@ -28,7 +28,8 @@ union thread_union init_thread_union __init_task_data =
 
 /*
  * Task struct of init
- *
+ * 
+ * All other task structs will be allocated on slabs in fork.c
  */
 struct task_struct init_task = INIT_TASK(init_task);
 EXPORT_SYMBOL(init_task);

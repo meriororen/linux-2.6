@@ -1,0 +1,20 @@
+hw:
+1. PIC (Programmable Interrupt Controller)
+
+
+regs:
+2. Control registers [
+	IE : Interrupt Enable,
+	IM : Interrupt Mask,
+	IP : Interrupt Pending,
+	ICC: Instruction Cache Control,
+	DCC: Data CC,
+	CFG: Config,
+	CC : Cycle Counter,
+	EBA: Exception Base Address,
+	DEBA: Debug EBA,
+	JTX, JRX: JTAG Transmit&Receive,
+	BP,WP Regs.		
+]
+3. Zero register (r0)
+4. CPU mode change?

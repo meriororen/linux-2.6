@@ -9,7 +9,7 @@ head.S		: OK	Kernel Startup
 init_task.c	: OK	Init task descriptor	
 irq.c		: UNC	IRQ functions	
 Makefile	: UNC	The Makefile
-module.c	: TODO
+module.c	: TODO	Module relocation 
 modules.builtin	: TODO
 modules.order	: TODO
 process.c	: UNC

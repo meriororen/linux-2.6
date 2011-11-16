@@ -14,6 +14,7 @@ OUTPUT_ARCH("tct")
 ENTRY("_start")
 
 jiffies = jiffies_64 + 4;
+SECTIONS
 {
 	. = CONFIG_KERNEL_BASE_ADDR;
 	_init_begin = .;

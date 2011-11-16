@@ -159,3 +159,75 @@ unsigned long thread_saved_pc(struct task_struct *tsk)
 	return 0;
 }
 
+int copy_thread(unsigned long clone_flags,
+		unsigned long usp, unsigned long stk_size,
+		struct task_struct *p, struct pt_regs *regs)
+{
+	unsigned long child_tos = KSTK_TOS(p);
+	struct pt_regs *chlidregs;
+
+	if(!user_mode(regs)) {
+		/* kernel thread */
+		
+		if(usp != 0)
+			panic("trying to start kernel thread with usp != 0");
+
+		/* childregs = full task switch frame on kernel stack of child */
+		childregs = (struct pt_regs *)(child_tos) - 1;
+		*childregs = *regs;
+
+		childregs->r4 = 0;
+		regs->r4 = p->pid;
+
+		/* return via ret_from_fork */
+		childregs->ra = (unsigned long)ret_from_fork;
+
+		/* setup ksp/usp */
+		p->thread.ksp = (unsigned long)childregs - 4; /* perhaps not necessary */
+		childregs->sp = p->thread.ksp;
+		p->thread.usp = 0;
+		p->thread.which_stack = 0; /* kernel stack */
+
+		//printk("copy_thread1: ->pid=%d tsp=%lx r5=%lx p->thread.usp=%lx\n",
+		//		p->pid, task_stack_page(p), childregs->r5, p->thread.ksp, p->thread.usp);
+	} else {
+		/* userspace thread (vfork, clone) */
+		
+		unsigned long ra_in_syscall;
+		struct pt_regs* childsyscallregs;
+	
+		//asm volatile("break");
+
+		/* this was brought to us by sys_tct_vfork in kernel/sys_tct.c */
+		ra_in_syscall = regs->r1;
+
+		/* childsyscallregs = full syscall frame on kernel stack of child */
+		childsyscallregs = (struct pt_regs *)(child_tos) - 1;
+		/* no need to return value here, it will be set by task switch frame */ 
+		/* copy task switch frame, child shall return with the same register as parent entered the syscall except for return value of syscall */
+		childregs = childsyscallregs - 1;
+		
+		/* child shall have same syscall context to restore as parent has */
+		*childsyscallregs = *regs;
+
+		regs->r4 = p->pid; /* parents get child's pid as the retval */
+		
+		/* user stack pointer is sharef with the parent per definition of vfork */
+		p->thread.usp = usp;
+		
+		/* kernel stack pointer is not shared with parent, it is the beginning of the just created new task switch segment on the kernel itself */
+		p->thread.ksp = (unsigned long)childregs - 4;
+		p->thread.which_stack = 0; /* resume from ksp */
+
+		/* child returns via ret_from_fork */
+		childregs->ra = (unsigned long)ret_from_fork;
+		/* child shall return to where sys_vfork_wrapper has been called */
+		childregs->r5 = ra_in_syscall;
+		/* child gets zero as return value from syscall */
+		childregs->r4 = 0;
+		/* after task switch segment return the stack pointer shall point to the syscall frame */
+		childregs->sp = (unsigned long)childsyscallregs - 4;
+	
+	}
+	return 0;
+}
