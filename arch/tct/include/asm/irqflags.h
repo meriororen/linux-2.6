@@ -11,40 +11,37 @@
 
 static inline void arch_local_irq_disable(void)
 {
-	unsigned long tmp;
 	asm volatile ( 
-		" mfs	%0, msr		\n"
-		" nop			\n"
-		" andi	%0, %0, %1	\n"
-		" mts	msr, %0		\n"
-		" nop			\n"
-		: "=r"(tmp)
-		: "i" (~MSR_IE)
+		" /* mfs r0, msr*/ .word 0x18000000 	\n"
+		" orr	r0, %0				\n"
+		" /* mts msr, r0*/ .word 0x18020000	\n"
+		: 
+		: "i" (~MSR_IRQ)
 		: "memory"
 	);
 }
 
-static inline void arch_local_irq_save(void)
+static inline unsigned long arch_local_irq_save(void)
 {
-	unsigned int flags, tmp;
+	unsigned int flags;
 	asm volatile (
-		" mfs	%0, msr		\n"
-		" nop			\n"
-		" andi	%1, %0, %2	\n"
-		" mts	msr, %1		\n"
-		" nop			\n"
-		: "=r"(flags), "=r"(tmp)
-		: "i"(~MSR_IE)
+		" /* mfs r0, msr */ .word 0x18000000	\n"
+		" mov	%0, r0				\n"
+		" and	r0, r0, %1			\n"
+		" /* mts msr, %1 */ .word 0x18020000	\n"
+		: "=r"(flags)
+		: "i"(~MSR_IRQ)
 		: "memory"
 	);
+	return flags;
 }
 
 static inline unsigned long arch_local_save_flags(void)
 {
 	unsigned long flags;
 	asm volatile (
-		" mfs	%0, msr		\n"
-		" nop			\n"
+		" /* mfs r0, msr */ .word 0x18000000	\n"
+		" mov	%0, r0				\n"
 		: "=r" (flags)
 		:
 		: "memory"
@@ -56,15 +53,12 @@ static inline unsigned long arch_local_save_flags(void)
 
 static inline void arch_local_irq_enable(void)
 {
-	unsigned long tmp;
 	asm volatile(
-		" mfs	%0, msr		\n"
-		" nop			\n"
-		" orr	%0, %0, %1	\n"
-		" mts	msr, %0		\n"
-		" nop			\n"
-		: "=r"(tmp)
-		: "i"(MSR_IE)
+		" /* mfs r0, msr */ .word 0x18000000	\n"
+		" orr	r0, %0				\n"
+		" /* mts msr, r0 */ .word 0x18020000	\n"
+		: 
+		: "i"(MSR_IRQ)
 		: "memory"
 	);
 }
@@ -72,8 +66,8 @@ static inline void arch_local_irq_enable(void)
 static inline void arch_local_irq_restore(unsigned long flags)
 {
 	asm volatile(
-		" mts	 msr, %0	\n"
-		" nop			\n"
+		" mov r0, %0				\n"
+		" /* mts msr, r0 */ .word 0x18020000	\n"
 		: 
 		: "r"(flags)
 		: "memory"
@@ -82,7 +76,7 @@ static inline void arch_local_irq_restore(unsigned long flags)
 
 static inline int arch_irqs_disabled_flags(unsigned long flags)
 {
-	return ((flags & MSR_IE) == 0);
+	return ((flags & MSR_IRQ) == 0);
 }
 
 static inline int arch_irqs_disabled(void)

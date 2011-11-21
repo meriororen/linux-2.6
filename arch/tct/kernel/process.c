@@ -60,7 +60,7 @@ struct thread_info* tct_current_thread;
 static void default_idle(void)
 {
 	while(!need_resched())
-		__asm__ __volatile__("and r0, r0, r0" ::: "memory");
+		__asm__ __volatile__("and r0, r0, r0" :::"memory");
 }
 
 void (*idle)(void) = default_idle;

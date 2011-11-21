@@ -8,8 +8,6 @@
  * #defines from the assembly-language output.
  */
 
-#define ASM_OFFSETS_C
-
 #include <linux/kbuild.h>
 
 #include <linux/sched.h>
@@ -85,6 +83,7 @@ void output_thread_info_defines(void)
 	BLANK();	
 }
 
+
 int output_thread_struct_defines(void)
 {
 	COMMENT("Offsets into the thread struct");
@@ -95,3 +94,4 @@ int output_thread_struct_defines(void)
 
 	return 0;
 }
+

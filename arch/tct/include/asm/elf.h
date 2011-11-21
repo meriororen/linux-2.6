@@ -33,3 +33,5 @@
  */
 #define ELF_CLASS	ELFCLASS32
 #define ELF_DATA	ELFDATA2MSB
+
+#endif

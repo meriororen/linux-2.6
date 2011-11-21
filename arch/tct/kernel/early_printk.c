@@ -9,7 +9,7 @@ static void __init early_console_putc(char c)
 	unsigned int timeout = 1000;
 	uint32_t pending;
 
-	iowrite32be(c, CSR_UART_RXTX);
+	iowrite32(c, MSR_UART_RXTX);
 
 	do {
 		pending = tct_irq_pending();

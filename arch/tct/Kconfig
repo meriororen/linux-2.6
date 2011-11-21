@@ -2,6 +2,13 @@ config TCT
 	bool
 	default y
 	select CPU_TCT
+	select HAVE_GENERIC_HARDIRQS
+	select GENERIC_HARD_IRQS_NO_DEPRECATED
+	select GENERIC_IRQ_SHOW
+	select ARCH_REQUIRE_GPIOLIB
+	select OF
+	select OF_EARLY_FLATTREE
+	select HAVE_MEMBLOCK
 
 config GENERIC_GPIO
 	bool
@@ -101,10 +108,10 @@ source "drivers/Kconfig"
 
 source "fs/Kconfig"
 
-#source "arch/tct/Kconfig.debug"
+source "arch/tct/Kconfig.debug"
 
-#source "security/Kconfig"
+source "security/Kconfig"
 
-#source "crypto/Kconfig"
+source "crypto/Kconfig"
 
-#source "lib/Kconfig"
+source "lib/Kconfig"

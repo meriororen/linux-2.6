@@ -8,15 +8,39 @@
 #include <asm/segment.h>
 #include <generated/asm-offsets.h>
 #include <asm/ptrace.h>
+#include <asm/registers.h>
 
-/*
- * No exception vector yet
- */
+
+#if CONFIG_TCT_SPECIAL_REG
+	.macro disable_irq
+	mfs r0, msr
+	orr r0, ~MSR_IRQ
+	mts msr, r0
+	.endm
+
+	.macro enable_irq
+	mfs r0, msr
+	orr r0, MSR_IRQ
+	mts msr, r0
+	.endm
+#else
+	.macro disable_irq
+	/* mfs r0, msr */ .word 0x01800000
+	orr r0, ~MSR_IRQ
+	/* mts msr, r0 */ .word 0x18020000
+	.endm
+	
+	.macro enable_irq
+	/* mfs r0, msr */ .word 0x01800000
+	orr r0, MSR_IRQ
+	/* mts msr, r0 */ .word 0x18020000
+#endif
+
 
 /* exception vector for os-aware gdb and kernel signals */
 #define KERNEL_EXCEPTION_VECTOR(offset) \
 	addi sp, sp, -132; \
-	stm ra, sp, 120; \
+	stm lnk, sp, 120; \
 	call _save_syscall_frame; \
 	mov r1, offset; \
 	addi r2, sp, 4;
@@ -26,16 +50,17 @@
 
 .section ".exception.text", "ax"
 
-/* TODOS : */
-/*
 ENTRY(reset_handler)
-	KERNEL_EXCEPTION_VECTOR(0)
-
-ENTRY(breakpoint_handler)
-ENTRY(instruction_bus_error_handler)
-ENTRY(data_bus_error_handler)
-ENTRY(divide_by_zero_handler)
+	KERNEL_EXCEPTION_VECTOR(_start)
+ENTRY(scall_handler)
+	KERNEL_EXCEPTION_VECTOR(_scall)
+ENTRY(cpu_handler)
+	KERNEL_EXCEPTION_VECTOR(_cpu)
+ENTRY(mmu_handler)
+	KERNEL_EXCEPTION_VECTOR(_mmu)
 ENTRY(interrupt_handler)
+	KERNEL_EXCEPTION_VECTOR(_irq)
+
 
 */
 ENTRY(system_call)
@@ -55,12 +80,13 @@ ENTRY(system_call)
 	mov r11, sp /* remember sp for restoring r9, r10, r11 */
 
 	/* r9 now contains current task's which_stack */
-	neq r0, r9, r0
+	neq r0, r9, 0
 	beq 1f
 
 	/* we are on user stack, need to switch */
 	stm sp, r10, TASK_USP /* store usp */
 	ldm sp, r10, TASK_KSP /* load ksp */
+	mov r0, 0
 	stm r0, r10, TASK_WHICH_STACK 
 
 1: /* already on kernel stack */
@@ -84,14 +110,14 @@ ENTRY(system_call)
 	/* r8 always holds the syscall number */
 	/* check if syscall number is valid */
 	mov r9, __NR_syscalls
-	clt r0, r8, r9, 0 /* r8 < r9 ? r0 = 1 : r0 = 0 */
+	cltu r0, r8, r9, 0 /* r8 < r9 ? r0 = 1 : r0 = 0 */
 	beq .badsyscall
 	movh r9, hi(sys_call_table) /* load address of syscall table */
 	orr r9, r9, lo(sys_call_table)
 	shl r10, r8, 2 
 	add r9, r9, r10 /* add offset of syscall number to address */
 	ldm r9, r9, 0 /* fetch address of syscall function */
-	mov r0, r9 /* TODO: confirm this is right on TCT */
+	mov r0, r9 /* move it to r0  */
 	call_reg /* execute syscall */
 
 .syscallTail:
@@ -129,6 +155,7 @@ ENTRY(system_call)
 	/* we are on user stack, switch */ \
 	stm sp, r10, TASK_USP; /* store USP */ \
 	ldm sp, r10, TASK_KSP; /* load KSP */ \
+	mov r0, 0; \
 	stm r0, r10, TASK_WHICH_STACK; /* set which_stack to 0 */ \
 	/* restore r9, r10, r11 */ \
 	ldm r9, r11, -4; \
@@ -161,6 +188,7 @@ label: \
 	/* store pt_regs* in r2 */ \
 	addi r2, sp, 4; \
 	/* store 0 into r8 (syscall no) in pt_regs */ \
+	mov r0, 0; \
 	stm r0, sp, 36; \
 	call manage_signals; \
 	stm r1, sp, 8; \
@@ -181,13 +209,13 @@ ENTRY(ret_from_fork)
 	stm	r5, sp, 16
 	call	schedule_tail
 	ldm	r1, sp, 12
-	mov	r2, r0
+	mov	r2, 0
 	/* call manage_signals (seems TODO) */
 	ldm	r2, sp, 4
 	ldm	r3, sp, 8
 	ldm	lnk, sp, 16
 	addi	sp, sp, 16
-	rtn	lnk, sp, -4 /* how do you return from call???? */
+	rtn	 
 
 /*********************************/
 /* entry (wrapper) to syscalls   */
@@ -204,28 +232,28 @@ ENTRY(sys_rt_sigsuspend_wrapper)
 	/* store regs into 3rd argument */
 	mov 	r3, r7
 	call 	sys_rt_sigsuspend
-	/* load ra from kernel stack */
+	/* load lnk from kernel stack */
 	ldm 	lnk, sp, 4
 	addi 	sp, sp, 4
-	rtn 	lnk, sp, -4
+	rtn 	
 
 ENTRY(sys_vfork)
-	/* save ra?? to kernel stack */
+	/* save lnk to kernel stack */
 	addi 	sp, sp, -4
 	stm 	lnk, sp, 4
 	/* store regs into 1st argument */
 	mov 	r1, r7
-	/* store ra into 2nd argument */
+	/* store lnk into 2nd argument */
 	mov 	r2, lnk
 	call 	sys_tct_vfork
-	/* load ra from kernel stack */
+	/* load lnk from kernel stack */
 	ldm 	lnk, sp, 4
 	addi 	sp, sp, 4
-	rtn 	lnk, sp, -4 /* yeah me too ??? */
+	rtn 	
 
 /* purpose of this wrapper: putting struct pt_regs* into 1st arg */
 ENTRY(sys_sigreturn)
-	/* save ra?? to stack */
+	/* save lnk to stack */
 	addi 	sp, sp, -4
 	stm 	lnk, sp, 4
 	/* fix 1st arg */
@@ -234,28 +262,39 @@ ENTRY(sys_sigreturn)
 	/* load ra from stack */
 	ldm 	lnk, sp, 4
 	addi 	sp, sp, 4
-	rtn 	lnk, sp, -4
+	rtn 	
 
 ENTRY(sys_clone)
-	/* save ra to stack */
+	/* save lnk to stack */
 	addi 	sp, sp, -4
 	stm 	lnk, sp, 4
-	/* store ra into 5th arg */
+	/* store lnk into 5th arg */
 	mov 	r5, lnk
 	call 	sys_tct_clone
-	/* load ra from stack */
+	/* load lnk from stack */
 	ldm 	lnk, sp, 4
 	addi 	sp, sp, 4
-	rtn 	lnk, sp, -4
+	rtn 	
 
 /* in IRQ we call a function between save and restore */
 /* we therefore only save and restore the caller saved registers */
 _long_interrupt_handler:
 	addi 	sp, sp, -132
-	stm	ra, sp, 120
+	stm	lnk, sp, 120
 	call	_save_irq_frame
 	
-	/*TODO: Wait for Control & Status Register */
+	/* workaround hardware hazard. */
+	/* mfs r1, msr */ .word 0x18000000
+	and	r1, r1, MSR_IRQ
+	neq	r0, r1, 0
+	beq	6f
+	
+	/* */
+
+
+
+
+/*TODO: Wait for Control & Status Register */
 	
 _save_irq_frame:
 	stm	r1, sp, 8
@@ -356,7 +395,12 @@ label:	\
 	orr r1, r1, lo(kernel_mode); \
 	stm r2, r1, 0; \
 	
-
+	/* r9: scratch register */ \
+	/* r10: current = current_thread_info()->task */ \
+	/* r11: ksp backup */ \
+	/* setup r10 = current */ \
+	addi sp, sp, 132; \
+	neq r0, r2, 1f; \
 
 
 

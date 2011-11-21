@@ -1,5 +1,5 @@
 #
-# Makefile for lm32 specific library files..
+# Makefile for tct specific library files..
 #
 
-lib-y	:= 
+lib-y	:= memset.o memcpy.o libgcc2.o

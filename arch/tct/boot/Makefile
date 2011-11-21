@@ -1,4 +1,4 @@
-obj-y += tct-board.dtb.o
+obj-y += tct_board.dtb.o
 
 clean-files := *.dtb.S
 

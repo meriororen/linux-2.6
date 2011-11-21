@@ -3,10 +3,10 @@
  * Theobroma Systems' uClinux 
  */
 
-#ifndef _LM32_ASM_PGTABLE_H
-#define _LM32_ASM_PGTABLE_H
+#ifndef _TCT_ASM_PGTABLE_H
+#define _TCT_ASM_PGTABLE_H
 
-#include <asm-generic/4level-fixup>
+#include <asm-generic/4level-fixup.h>
 
 #include <asm/page.h>
 

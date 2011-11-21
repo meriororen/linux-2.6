@@ -44,7 +44,7 @@ struct pt_regs {
 	tct_reg_t brp1;
 	tct_reg_t brp2;
 	unsigned int pt_mode;
-}
+};
 
 #ifdef __KERNEL__
 #define user_mode(regs) ((regs)->pt_mode == PT_MODE_USER)

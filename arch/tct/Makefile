@@ -1,26 +1,26 @@
-board-$(CONFIG_BOARD_TCT_BOARD)	:= tct-board
+#
+# arch/tct/Makefile
+#
+
+board-$(CONFIG_TCT_BOARD) := tct-board
 BOARD := $(board-y)
 
 export BOARD
-
-cflags-y := 
-
-KBUILD_AFLAGS += $(cflags-y)
-KBUILD_CFLAGS += $(cflags-y)
 
 OBJCOPYFLAGS := -O binary -R .note -R .comment -S
 
 head-y := arch/tct/kernel/head.o arch/tct/kernel/init_task.o
 
-core-y := arch/tct/
-core-y := arch/tct/boot/
-libs-y := arch/tct/lib/
+core-y += arch/tct/
+core-y += arch/tct/boot/
+libs-y += arch/tct/lib/
 
 # some note :
 # $@ means target, $< means first prerequisite
 # refer to "GNU make auto variable"
+# for example, vmlinux is first (and only) prerequisite and vmlinux.bin is target
 
-vmlinux.bin: vmlinux
+vmlinux.bin: vmlinux 
 	$(OBJCOPY) $(OBJCOPYFLAGS) $< $@
-vmlinux.gz:
+vmlinux.gz: vmlinux.bin
 	cat $< |gzip >$@

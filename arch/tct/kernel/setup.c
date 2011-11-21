@@ -116,7 +116,7 @@ static void __init device_tree_init(void)
 	if(!initial_boot_params) return;
 
 	base = __pa(initial_boot_params);
-	size = be32_to_cpu(initial_boot_params->totalsize);
+	size = le32_to_cpu(initial_boot_params->totalsize);
 
 	/* Reserve the dt blob */
 	memblock_reserve(base, size);
