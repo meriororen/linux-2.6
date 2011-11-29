@@ -152,12 +152,12 @@ void __init machine_early_init(char *cmdline, unsigned long p_initrd_start,
 #else
 	strlcpy(cmd_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
 #endif
-	initrd_start = p_initrd_start;
-	initrd_end = p_initrd_end;
+	initrd_start	= 0x00800000;
+	initrd_end 	= 0x10000000;
 	
 	early_init_devtree(__dtb_start);
-	printk("initrd: %lx %lx\n", initrd_start, initrd_end);
 	memblock_reserve(__pa(initrd_start), initrd_end - initrd_start);
+	__asm__ __volatile__ ("halt");
 }
 
 void __init setup_arch(char **cmdline_p)

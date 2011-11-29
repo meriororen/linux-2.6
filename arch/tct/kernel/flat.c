@@ -23,7 +23,7 @@ unsigned long tct_get_addr_from_rp(unsigned long *ptr,
 	switch(type){
 	case FLAT_TCT_RELOC_TYPE_32_BIT:
 		pr_debug("*ptr = %lx", get_unaligned(ptr));
-		val = get_unaligned(ptr)
+		val = get_unaligned(ptr);
 		break;
 	
 	case FLAT_TCT_RELOC_TYPE_LO16_BIT:
@@ -46,7 +46,7 @@ EXPORT_SYMBOL(tct_get_addr_from_rp);
  * Insert the address ADDR into the symbol reference at RP;
  * RELVAL is the raw relocation-table entry from which RP is derived
  */
-void tct_put_addr_at_rp(unsigned *ptr, unsigned long addr,
+void tct_put_addr_at_rp(unsigned long *ptr, unsigned long addr,
 			unsigned long relval)
 {
 	unsigned short *usptr = (unsigned short *)ptr+1;

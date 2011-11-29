@@ -17,12 +17,12 @@ jiffies = jiffies_64 + 4;
 SECTIONS
 {
 	. = CONFIG_KERNEL_BASE_ADDR;
-	_init_begin = .;
+	__init_begin = .;
 	HEAD_TEXT_SECTION
 	INIT_TEXT_SECTION(PAGE_SIZE)
 	INIT_DATA_SECTION(16)
 	PERCPU_SECTION(32)
-	_init_end = .;
+	__init_end = .;
 
 	.text : AT(ADDR(.text) - LOAD_OFFSET) {
 		_text = .;

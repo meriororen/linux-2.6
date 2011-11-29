@@ -59,7 +59,7 @@ asmlinkage int tct_execve(const char __user *ufilename,
 	error = PTR_ERR(filename);
 	if(IS_ERR(filename)) goto out;
 
-	error = do_execve(finlename, uargv, uenvp, regs);
+	error = do_execve(filename, uargv, uenvp, regs);
 	putname(filename);
 out:	
 	return error;
@@ -71,15 +71,19 @@ out:
 int kernel_execve(const char *filename, const char *const argv[], const char *const envp[])
 {
 	/* This needs further reading */
+	return 0;
 }
 EXPORT_SYMBOL(kernel_execve);
 
 asmlinkage int sys_tct_vfork(struct pt_regs *regs, unsigned long ra_in_syscall)
 {
 	int ret;
-	
+
+#ifdef CONFIG_DEBUG
+
 	printk("do_fork regs=%lx ra=%lx usp=%lx\n", regs, ra_to_syscall_entry, usp);
 
+#endif
 	/* save ra_in_syscall to r1, this register will not be restored or overwritten */
 	regs->r1 = ra_in_syscall;
 	ret = do_fork(CLONE_VFORK | CLONE_VM | SIGCHLD, current->thread.usp, regs, 0, NULL, NULL);
@@ -94,13 +98,13 @@ asmlinkage int sys_tct_vfork(struct pt_regs *regs, unsigned long ra_in_syscall)
 asmlinkage int sys_tct_clone(
 	int _unused_fn,
 	unsigned long newsp,
-	unsigned long clone_flags
+	unsigned long clone_flags,
 	int _unused_arg,
 	unsigned long ra_in_syscall,
 	int _unused_r6,
 	struct pt_regs *regs)
 {
-	register unsigned long r_sp asm("sp");
+	register unsigned long r_sp asm("SP");
 	int ret;
 	
 	/* -12 because the function and the argument to the child is stored on 

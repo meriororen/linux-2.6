@@ -53,6 +53,15 @@
 asmlinkage void ret_from_fork(void);
 
 struct thread_info* tct_current_thread;
+/*
+ * The following aren't currently used.
+ */
+void (*pm_idle)(void);
+EXPORT_SYMBOL(pm_idle);
+
+void (*pm_power_off)(void);
+EXPORT_SYMBOL(pm_power_off);
+
 
 /*
  * The idle loop on TCT
@@ -104,7 +113,7 @@ void machine_power_off(void)
 void show_regs(struct pt_regs * regs)
 {
 	printk("Registers:\n");
-	#define TCTREG(name) printk("%3s : 0x%1x\n", #name, regs->name)
+	#define TCTREG(name) printk("%3s : 0x%lx\n", #name, regs->name)
 	TCTREG(r0);  TCTREG(r1);  TCTREG(r2);  TCTREG(r3);  TCTREG(r4);
 	TCTREG(r5);  TCTREG(r6);  TCTREG(r7);  TCTREG(r8);  TCTREG(r9);
 	TCTREG(r10); TCTREG(r11); TCTREG(r12); TCTREG(r13); TCTREG(r14);
@@ -164,7 +173,7 @@ int copy_thread(unsigned long clone_flags,
 		struct task_struct *p, struct pt_regs *regs)
 {
 	unsigned long child_tos = KSTK_TOS(p);
-	struct pt_regs *chlidregs;
+	struct pt_regs *childregs;
 
 	if(!user_mode(regs)) {
 		/* kernel thread */
@@ -180,7 +189,7 @@ int copy_thread(unsigned long clone_flags,
 		regs->r4 = p->pid;
 
 		/* return via ret_from_fork */
-		childregs->ra = (unsigned long)ret_from_fork;
+		childregs->lnk = (unsigned long)ret_from_fork;
 
 		/* setup ksp/usp */
 		p->thread.ksp = (unsigned long)childregs - 4; /* perhaps not necessary */
@@ -220,7 +229,7 @@ int copy_thread(unsigned long clone_flags,
 		p->thread.which_stack = 0; /* resume from ksp */
 
 		/* child returns via ret_from_fork */
-		childregs->ra = (unsigned long)ret_from_fork;
+		childregs->lnk = (unsigned long)ret_from_fork;
 		/* child shall return to where sys_vfork_wrapper has been called */
 		childregs->r5 = ra_in_syscall;
 		/* child gets zero as return value from syscall */

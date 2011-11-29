@@ -3,7 +3,7 @@
 #include <linux/sched.h>
 #include <linux/init_task.h>
 #include <linux/mqueue.h>
-#include <linux/hadirq.h>
+#include <linux/hardirq.h>
 
 #include <asm/thread_info.h>
 #include <asm/uaccess.h>

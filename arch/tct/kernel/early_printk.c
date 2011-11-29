@@ -3,15 +3,16 @@
 #include <linux/string.h>
 #include <asm/irq.h>
 #include <asm/hw/tct-board.h>
+#include <linux/io.h>
 
 static void __init early_console_putc(char c)
 {
 	unsigned int timeout = 1000;
 	uint32_t pending;
 
-	iowrite32(c, MSR_UART_RXTX);
-
-	do {
+	iowrite32(c, UART_RXTX);
+	
+ 	do {
 		pending = tct_irq_pending();
 	} while (pending & BIT(IRQ_UARTTX) && --timeout);
 
@@ -32,7 +33,7 @@ static struct console early_console __initdata = {
 	.write = early_console_write,
 	.flags = CON_PRINTBUFFER | CON_BOOT,
 	.index = -1
-}
+};
 
 static bool early_console_initialized __initdata;
 
