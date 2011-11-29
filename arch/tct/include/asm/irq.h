@@ -8,18 +8,6 @@
 
 #define NO_IRQ 0
 
-static inline uint32_t tct_irq_pending(void)
-{
-	uint32_t ie;
-	__asm__ __volatile__(
-		"/*MFS	MSR, R0*/ .word 0x18000000	\n"
-		" MOV	%0, R0 				\n"
-		: "=r"(ie)
-		:
-	); 
-	return ie;
-}
-
 static inline void tct_irq_ack(unsigned int irq)
 {
 	uint32_t mask = (1<<irq);
@@ -31,5 +19,16 @@ static inline void tct_irq_ack(unsigned int irq)
 	); 
 }
 
-
+static inline uint32_t tct_irq_pending(void)
+{
+	uint32_t ip;
+	__asm__ __volatile__(
+		"/*MFS	R1, IRQ*/ .word 0x1A801000	\n"
+		"MOV %0, R1				\n"
+		: "=r"(ip)
+		:
+		:
+	);
+	return ip;
+}
 #endif

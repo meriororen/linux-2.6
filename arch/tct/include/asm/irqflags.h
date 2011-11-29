@@ -7,7 +7,7 @@
 #define _TCT_IRQFLAGS_H
 
 #include <linux/types.h>
-#include <asm/registers.h>
+#include <asm/hw/registers.h>
 
 static inline void arch_local_irq_disable(void)
 {
