@@ -119,7 +119,7 @@ void show_regs(struct pt_regs * regs)
 	TCTREG(r10); TCTREG(r11); TCTREG(r12); TCTREG(r13); TCTREG(r14);
 	TCTREG(r15); TCTREG(r16); TCTREG(r17); TCTREG(r18); TCTREG(r19);
 	TCTREG(r20); TCTREG(r21); TCTREG(r22); TCTREG(r23); TCTREG(r24);
-	TCTREG(r25); TCTREG(lnk);  TCTREG(fp);  TCTREG(sp);  TCTREG(bos);
+	TCTREG(r25); TCTREG(lkr);  TCTREG(fp);  TCTREG(sp);  TCTREG(bos);
 	TCTREG(brp1);  TCTREG(brp2);
 	#undef TCTREG
 }
@@ -189,7 +189,7 @@ int copy_thread(unsigned long clone_flags,
 		regs->r4 = p->pid;
 
 		/* return via ret_from_fork */
-		childregs->lnk = (unsigned long)ret_from_fork;
+		childregs->lkr = (unsigned long)ret_from_fork;
 
 		/* setup ksp/usp */
 		p->thread.ksp = (unsigned long)childregs - 4; /* perhaps not necessary */
@@ -229,7 +229,7 @@ int copy_thread(unsigned long clone_flags,
 		p->thread.which_stack = 0; /* resume from ksp */
 
 		/* child returns via ret_from_fork */
-		childregs->lnk = (unsigned long)ret_from_fork;
+		childregs->lkr = (unsigned long)ret_from_fork;
 		/* child shall return to where sys_vfork_wrapper has been called */
 		childregs->r5 = ra_in_syscall;
 		/* child gets zero as return value from syscall */

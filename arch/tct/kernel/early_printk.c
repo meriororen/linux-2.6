@@ -7,6 +7,12 @@
 
 static void __init early_console_putc(char c)
 {
+/*
+	unsigned int *uart = (unsigned int *)0x12345000;
+
+	*uart = (unsigned int)c;
+*/
+
 	unsigned int timeout = 1000;
 	uint32_t pending;
 
@@ -14,9 +20,9 @@ static void __init early_console_putc(char c)
 	
  	do {
 		pending = tct_irq_pending();
-	} while (pending & BIT(IRQ_UARTTX) && --timeout);
+	} while (pending & BIT(IRQ_UART) && --timeout);
 
-	tct_irq_ack(IRQ_UARTTX);
+	tct_irq_ack(IRQ_UART);
 }
 
 static void __init early_console_write(struct console *con, char *s,

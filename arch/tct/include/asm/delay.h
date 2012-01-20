@@ -10,6 +10,8 @@ static inline void __delay(unsigned long loops)
 {
 	/* get a realistic delay by using add more often than branch
 	 * (branch needs 4 cycles if taken, add only one) */
+		
+	printk("%s: called\n", __func__);
 	asm volatile(
 		""
 	);
@@ -26,6 +28,7 @@ static inline void __delay(unsigned long loops)
 static inline void udelay(unsigned long usecs)
 {
 	extern unsigned long loops_per_jiffy;
+	printk("%s: called\n", __func__);
 	__delay(usecs * loops_per_jiffy / (1000000 / HZ));
 }
 

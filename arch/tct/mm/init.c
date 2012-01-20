@@ -76,7 +76,7 @@ void __init bootmem_init(void)
 	bootmap_size = init_bootmem(free_pfn, end_pfn);
 	memblock_reserve(PFN_PHYS(free_pfn), bootmap_size);
 
-	free_bootmem(PFN_PHYS(free_pfn), PFN_PHYS(end_pfn - free_pfn);
+	free_bootmem(PFN_PHYS(free_pfn), PFN_PHYS(end_pfn - free_pfn));
 
 	for_each_memblock(reserved, reg)
 		reserve_bootmem(reg->base, reg->size, BOOTMEM_DEFAULT);
@@ -102,18 +102,34 @@ void __init paging_init(void)
 
 void __init mem_init(void) 
 {
+	int reservedpages, tmp;
+
 	high_memory = (void *)__va(max_low_pfn * PAGE_SIZE);
 
 	max_mapnr = num_physpages = max_low_pfn;
 
-	totalram_pages = free_all_bootmem();
+#ifdef CONFIG_FLATMEM
+	BUG_ON(!mem_map);
+#endif
 
-	printk(KERN_INFO "Memory available: %luk/%luk RAM, (%dk kernel code, %dk data)\n",
+	totalram_pages += free_all_bootmem();
+
+	reservedpages = 0;
+	for (tmp = 0; tmp < max_low_pfn; tmp++)
+		if (page_is_ram(tmp) && PageReserved(pfn_to_page(tmp)))
+			reservedpages++;
+
+
+	printk(KERN_INFO "nr_free_pages(): %lu \ntotalram_pages: %lu\n", nr_free_pages(), totalram_pages);
+
+	printk(KERN_INFO "Memory available: %luk/%luk RAM, (%dk kernel code, %dk reserved, %dk data)\n",
 		nr_free_pages() << (PAGE_SHIFT - 10),
 		max_mapnr << (PAGE_SHIFT - 10),
 		(_etext - _stext) >> 10,
+		reservedpages << (PAGE_SHIFT - 10),
 		(_edata - _etext) >> 10
 		);
+
 }
 
 static void free_init_pages(const char *what, unsigned long start, unsigned long end)

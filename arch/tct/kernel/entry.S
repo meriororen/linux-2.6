@@ -11,18 +11,6 @@
 #include <asm/hw/registers.h>
 
 
-	.macro disable_irq
-	/* mfs r0, msr */ .word 0x01800000
-	orr r0, ~MSR_IRQ
-	/* mts msr, r0 */ .word 0x18020000
-	.endm
-	
-	.macro enable_irq
-	/* mfs r0, msr */ .word 0x01800000
-	orr r0, MSR_IRQ
-	/* mts msr, r0 */ .word 0x18020000
-	.endm
-	
 /* exception vector for os-aware gdb and kernel signals */
 #define KERNEL_EXCEPTION_VECTOR(offset) \
 	addi sp, sp, -132; \
@@ -37,15 +25,15 @@
 .section ".exception.text", "ax"
 
 ENTRY(reset_handler)
-	KERNEL_EXCEPTION_VECTOR(0)
+	KERNEL_EXCEPTION_VECTOR(0x0)
 ENTRY(scall_handler)
-	KERNEL_EXCEPTION_VECTOR(0)
+	KERNEL_EXCEPTION_VECTOR(0x4)
 ENTRY(cpu_handler)
-	KERNEL_EXCEPTION_VECTOR(0)
+	KERNEL_EXCEPTION_VECTOR(0x8)
 ENTRY(mmu_handler)
-	KERNEL_EXCEPTION_VECTOR(0)
+	KERNEL_EXCEPTION_VECTOR(0xC)
 ENTRY(interrupt_handler)
-	KERNEL_EXCEPTION_VECTOR(0)
+	KERNEL_EXCEPTION_VECTOR(0x10)
 
 
 
@@ -357,7 +345,6 @@ _save_syscall_frame:
 	stm	r23, sp, 96
 	stm	r24, sp, 100
 	stm	r25, sp, 104
-	stm	intr, sp, 112
 	/* lkr (sp + 120) should have been written already */
 	/* mfs	r0, elnk */ .word 0x1A000000
 	stm	r0, sp, 124  

@@ -13,7 +13,7 @@ static inline void arch_local_irq_disable(void)
 {
 	asm volatile ( 
 		" /* mfs r0, msr*/ .word 0x18000000 	\n"
-		" orr	r0, %0				\n"
+		" and	r0, r0, %0			\n"		
 		" /* mts msr, r0*/ .word 0x18020000	\n"
 		: 
 		: "i" (~MSR_IRQ)
@@ -28,7 +28,7 @@ static inline unsigned long arch_local_irq_save(void)
 		" /* mfs r0, msr */ .word 0x18000000	\n"
 		" mov	%0, r0				\n"
 		" and	r0, r0, %1			\n"
-		" /* mts msr, %1 */ .word 0x18020000	\n"
+		" /* mts msr, r0 */ .word 0x18020000	\n"
 		: "=r"(flags)
 		: "i"(~MSR_IRQ)
 		: "memory"

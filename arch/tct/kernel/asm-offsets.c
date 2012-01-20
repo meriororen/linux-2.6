@@ -62,12 +62,16 @@ void output_ptreg_defines(void)
 	DEFINE(PT_R23, offsetof(struct pt_regs, r23));
 	DEFINE(PT_R24, offsetof(struct pt_regs, r24));
 	DEFINE(PT_R25, offsetof(struct pt_regs, r25));
-	DEFINE(PT_LNK, offsetof(struct pt_regs, lnk));
+	DEFINE(PT_LKR, offsetof(struct pt_regs, lkr));
 	DEFINE(PT_FP, offsetof(struct pt_regs, fp));
 	DEFINE(PT_SP, offsetof(struct pt_regs, sp));
 	DEFINE(PT_BOS, offsetof(struct pt_regs, bos));
 	DEFINE(PT_BRP1, offsetof(struct pt_regs, brp1));
 	DEFINE(PT_BRP2, offsetof(struct pt_regs, brp2));
+	DEFINE(PT_SIZE, sizeof(struct pt_regs));
+	DEFINE(PT_MSR, offsetof(struct pt_regs, msr));
+	DEFINE(PT_EAR, offsetof(struct pt_regs, ear));
+	DEFINE(PT_IMASK, offsetof(struct pt_regs, ear));
 	BLANK();
 }
 

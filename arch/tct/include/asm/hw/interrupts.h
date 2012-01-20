@@ -18,9 +18,8 @@
 #ifndef __HW_INTERRUPTS_H
 #define __HW_INTERRUPTS_H
 
-#define IRQ_UARTRX		(0)
-#define IRQ_UARTTX		(1)
-#define IRQ_TIMER0		(2)
-#define IRQ_TIMER1		(3)
-
+#define IRQ_UART		(0)
+#define IRQ_TIMER0		(1)
+#define IRQ_TIMER1		(2)
+#define IRQ_TIMER2		(3)
 #endif

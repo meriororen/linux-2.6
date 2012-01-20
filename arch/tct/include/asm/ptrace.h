@@ -37,12 +37,16 @@ struct pt_regs {
 	tct_reg_t r23;
 	tct_reg_t r24;
 	tct_reg_t r25;
-	tct_reg_t lnk;
+	tct_reg_t lkr;
 	tct_reg_t fp;
 	tct_reg_t sp;
 	tct_reg_t bos;
 	tct_reg_t brp1;
 	tct_reg_t brp2;
+	tct_reg_t msr;
+	tct_reg_t ear;
+	tct_reg_t irq;
+	tct_reg_t imask;
 	unsigned int pt_mode;
 };
 
