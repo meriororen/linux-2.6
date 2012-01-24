@@ -1,0 +1,74 @@
+initrd: 800000 1000000 size: 8388608
+Linux version 3.0.0-rc7 (isa@orion.vlsi.ss.titech.ac.jp) (gcc version 4.5.2 (GCC) ) #1 Tue Jan 24 00:35:53 JST 2012
+bootconsole [early0] enabled
+Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 32512
+Kernel command line: debug bootmem_debug
+bootmem::alloc_bootmem_core nid=0 size=800 [1 pages] align=20 goal=0 limit=0
+bootmem::__reserve nid=0 start=444 end=445 flags=1
+PID hash table entries: 512 (order: -1, 2048 bytes)
+bootmem::alloc_bootmem_core nid=0 size=10000 [16 pages] align=20 goal=0 limit=0
+bootmem::__reserve nid=0 start=464 end=474 flags=1
+Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+bootmem::alloc_bootmem_core nid=0 size=8000 [8 pages] align=20 goal=0 limit=0
+bootmem::__reserve nid=0 start=484 end=48c flags=1
+Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+nr_free_pages() - before freeing : 0k 
+bootmem::free_all_bootmem_core nid=0 start=0 end=8000 aligned=1
+bootmem::free_all_bootmem_core nid=0 released=4100k					<--- only 4100k released from bootmem
+nr_free_pages() - after freeing : 0k 							<--- even after freeing -
+Memory available: 0k/131072k RAM, (1169k kernel code, 0k reserved, 247k data)		<--- memory available 0k?
+kmem_cache_init()...									<--- panic here (obvious - no memory)
+swapper: page allocation failure: order:0, mode:0x4000
+
+Call Trace: 										<--- null cleaned
+[<00058ca0>] __alloc_pages_nodemask+0x4f0/0x6d4
+[<00000020>] _irq+0x0/0x44
+[<00004000>] sched_init+0x1bc/0x300
+[<0006a4e4>] cache_alloc_refill+0x3e8/0x6d4
+[<00000010>] _sinittext+0x10/0x14
+[<00000001>] _sinittext+0x1/0x14
+[<00100100>] tty_ioctl+0x7d8/0xba0
+[<00000020>] _irq+0x0/0x44
+[<00008000>] mark_bootmem_node+0x9c/0x114
+[<00000001>] _sinittext+0x1/0x14
+[<00000001>] _sinittext+0x1/0x14
+[<00000001>] _sinittext+0x1/0x14
+[<00000040>] _irq+0x20/0x44
+[<00000001>] _sinittext+0x1/0x14
+[<00000001>] _sinittext+0x1/0x14
+[<00000001>] _sinittext+0x1/0x14
+[<00000001>] _sinittext+0x1/0x14
+[<00024000>] proc_put_char+0x58/0x60
+[<0006a0e0>] kmem_cache_alloc+0xa4/0xc0
+[<00000008>] _sinittext+0x8/0x14
+[<00000020>] _irq+0x0/0x44
+[<00042000>] do_timer+0x96c/0xd48
+[<00000010>] _sinittext+0x10/0x14
+[<00008000>] mark_bootmem_node+0x9c/0x114
+[<00000001>] _sinittext+0x1/0x14
+[<00000001>] _sinittext+0x1/0x14
+[<0006bbc8>] kmem_cache_create+0x1d0/0x570
+[<00000020>] _irq+0x0/0x44
+[<00009930>] kmem_cache_init+0x1c4/0x3c4
+[<000098a8>] kmem_cache_init+0x13c/0x3c4
+[<00000718>] start_kernel+0x174/0x330
+[<00000040>] _irq+0x20/0x44
+
+Mem-Info:
+Normal per-cpu:
+CPU    0: hi:    0, btch:   1 usd:   0
+active_anon:0 inactive_anon:0 isolated_anon:0
+ active_file:0 inactive_file:0 isolated_file:0
+ unevictable:0 dirty:0 writeback:0 unstable:0
+ free:0 slab_reclaimable:0 slab_unreclaimable:0
+ mapped:0 shmem:0 pagetables:0 bounce:0
+Normal free:0kB min:0kB low:0kB high:0kB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB isolated(anon):0kB isolated(file):0kB present:130048kB mlocked:0kB dirty:0kB writeback:0kB mapped:0kB shmem:0kB slab_reclaimable:0kB slab_unreclaimable:0kB kernel_stack:0kB pagetables:0kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+lowmem_reserve[]: 0 0
+Normal: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB = 0kB
+0 total pagecache pages
+32768 pages RAM (131072k)
+31743 pages reserved (126972k)								<--- WHY RESERVED? (131072k - 126972k = 4100k = the amount released from bootmem)
+0 pages shared
+0 pages non-shared
+Kernel panic - not syncing: kmem_cache_create(): failed to create slab `size-32'
+
