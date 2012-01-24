@@ -447,9 +447,13 @@ static void __init mm_init(void)
 	 */
 	page_cgroup_init_flatmem();
 	mem_init();
+	printk("kmem_cache_init()...\n");
 	kmem_cache_init();
+	printk("percpu_init_late()...\n");
 	percpu_init_late();
+	printk("pgtable_cache_init()...\n");
 	pgtable_cache_init();
+	printk("vmalloc_init()...\n");
 	vmalloc_init();
 }
 
@@ -511,6 +515,7 @@ asmlinkage void __init start_kernel(void)
 	sort_main_extable();
 	trap_init();
 	mm_init();
+
 
 	/*
 	 * Set up the scheduler prior starting any interrupts (such as the
