@@ -1540,6 +1540,20 @@ config SERIAL_MILKYMIST_CONSOLE
 	help
 	  Allow to use the Milkymist UART driver as system console.
 
+config SERIAL_LM32
+	bool "Enable LM32 (TCT) UART driver"
+	depends on TCT
+	select SERIAL_CORE
+	help
+	  Enable LM32 (TCT) UART driver.
+
+config SERIAL_LM32_CONSOLE
+	bool "Enable LM32 (TCT) UART driver as system console"
+	depends on SERIAL_LM32
+	select SERIAL_CORE_CONSOLE
+	help
+	  Allow to use the LM32 UART driver as TCT system console
+
 config SERIAL_ALTERA_JTAGUART
 	tristate "Altera JTAG UART support"
 	select SERIAL_CORE

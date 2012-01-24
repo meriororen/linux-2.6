@@ -5,10 +5,6 @@
 	#size-cells = <1>;
 	interrupt-parent = <&pic>; 
 
-	chosen {
-		bootargs = "root=/dev/root bootmem_debug debug";
-	};
-
 	memory@0 {
 		device_type = "memory";
 		reg = <0x00000000 0x8000000>; 

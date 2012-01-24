@@ -7,11 +7,6 @@
 
 static void __init early_console_putc(char c)
 {
-/*
-	unsigned int *uart = (unsigned int *)0x12345000;
-
-	*uart = (unsigned int)c;
-*/
 
 	unsigned int timeout = 1000;
 	uint32_t pending;

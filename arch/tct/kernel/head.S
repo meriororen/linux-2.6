@@ -36,7 +36,7 @@ _irq:
 	   r3 = initrd end,
 	*/
 
-	movh	r1, 0x7fe
+	movh	r1, 0x7ff
 	orr	r1, 0xf000
 	movh	r2, 0x80
 	orr	r2, 0x0000

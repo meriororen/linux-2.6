@@ -103,24 +103,27 @@ void __init paging_init(void)
 void __init mem_init(void) 
 {
 	int reservedpages, tmp;
+	unsigned long tmpr;
+
 
 	high_memory = (void *)__va(max_low_pfn * PAGE_SIZE);
 
 	max_mapnr = num_physpages = max_low_pfn;
 
-#ifdef CONFIG_FLATMEM
-	BUG_ON(!mem_map);
-#endif
+	printk(KERN_INFO "nr_free_pages() - before freeing : %luk \n", nr_free_pages() << 2);
 
-	totalram_pages += free_all_bootmem();
+	show_mem(0);
+
+	totalram_pages = free_all_bootmem();
 
 	reservedpages = 0;
 	for (tmp = 0; tmp < max_low_pfn; tmp++)
 		if (page_is_ram(tmp) && PageReserved(pfn_to_page(tmp)))
 			reservedpages++;
 
+	show_mem(0);
 
-	printk(KERN_INFO "nr_free_pages(): %lu \ntotalram_pages: %lu\n", nr_free_pages(), totalram_pages);
+	printk(KERN_INFO "nr_free_pages() - after freeing : %luk \n", nr_free_pages() << 2);
 
 	printk(KERN_INFO "Memory available: %luk/%luk RAM, (%dk kernel code, %dk reserved, %dk data)\n",
 		nr_free_pages() << (PAGE_SHIFT - 10),

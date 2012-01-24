@@ -11,13 +11,11 @@ atomic_t irq_err_count;
 
 static inline uint32_t tct_pic_get_irq_mask(struct irq_data *data)
 {
-	printk("%s: called\n", __func__);
 	return (uint32_t)irq_data_get_irq_chip_data(data);
 }
 
 static void tct_pic_irq_mask(struct irq_data *data)
 {
-	printk("%s: called\n", __func__);
 	uint32_t mask = tct_pic_get_irq_mask(data);
 	__asm__ __volatile__(
 		" /*mfs	r0, msr*/ .word 0x18000000	\n"
@@ -31,7 +29,6 @@ static void tct_pic_irq_mask(struct irq_data *data)
 
 static void tct_pic_irq_unmask(struct irq_data *data)
 {
-	printk("%s: called\n", __func__);
 	//uint32_t mask = tct_pic_get_irq_mask(data);
 	
 	__asm__ __volatile__(
@@ -41,7 +38,6 @@ static void tct_pic_irq_unmask(struct irq_data *data)
 
 static void tct_pic_irq_ack(struct irq_data *data)
 {
-	printk("%s: called\n", __func__);
 	//uint32_t mask = tct_pic_get_irq_mask(data);
 
 	__asm__ __volatile__(" /**/");
@@ -49,7 +45,6 @@ static void tct_pic_irq_ack(struct irq_data *data)
 
 static void tct_pic_irq_mask_ack(struct irq_data *data)
 {
-	printk("%s: called\n", __func__);
 	//uint32_t mask = tct_pic_get_irq_mask(data);
 
 	__asm__ __volatile__ (
@@ -95,14 +90,12 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 unsigned int irq_create_of_mapping(struct device_node *controller,
 				   const u32 *intspec, unsigned int intsize)
 {
-	printk("%s: called\n", __func__);
 	return intspec[0];
 }
 EXPORT_SYMBOL_GPL(irq_create_of_mapping);
 
 asmlinkage void asm_do_IRQ(unsigned int irq, struct pt_regs *regs)
 {
-	printk("%s: called\n", __func__);
 	struct pt_regs *old_regs = set_irq_regs(regs);
 
 	irq_enter();

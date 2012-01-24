@@ -3299,6 +3299,7 @@ static struct device *consdev;
 
 void console_sysfs_notify(void)
 {
+	//__asm__ __volatile__("halt");
 	if (consdev)
 		sysfs_notify(&consdev->kobj, NULL, "active");
 }
