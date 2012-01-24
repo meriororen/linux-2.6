@@ -1090,11 +1090,13 @@ static void pcpu_dump_alloc_info(const char *lvl,
 	v = ai->nr_groups;
 	while (v /= 10)
 		group_width++;
+	
 
 	v = num_possible_cpus();
 	while (v /= 10)
 		cpu_width++;
 	empty_str[min_t(int, cpu_width, sizeof(empty_str) - 1)] = '\0';
+	
 
 	upa = ai->alloc_size / ai->unit_size;
 	width = upa * (cpu_width + 1) + group_width + 3;
@@ -1126,6 +1128,7 @@ static void pcpu_dump_alloc_info(const char *lvl,
 		}
 	}
 	printk("\n");
+
 }
 
 /**
@@ -1210,6 +1213,7 @@ int __init pcpu_setup_first_chunk(const struct pcpu_alloc_info *ai,
 		BUG();							\
 	}								\
 } while (0)
+
 
 	/* sanity checks */
 	PCPU_SETUP_BUG_ON(ai->nr_groups <= 0);
@@ -1818,6 +1822,7 @@ void __init setup_per_cpu_areas(void)
 	unsigned int cpu;
 	int rc;
 
+
 	/*
 	 * Always reserve area for module percpu variables.  That's
 	 * what the legacy allocator did.
@@ -1850,6 +1855,7 @@ void __init setup_per_cpu_areas(void)
 					 PERCPU_DYNAMIC_RESERVE));
 	struct pcpu_alloc_info *ai;
 	void *fc;
+	
 
 	ai = pcpu_alloc_alloc_info(1, 1);
 	fc = __alloc_bootmem(unit_size, PAGE_SIZE, __pa(MAX_DMA_ADDRESS));

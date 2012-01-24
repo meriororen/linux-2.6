@@ -225,7 +225,7 @@ static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdata)
 	while (pages--)
 		__free_pages_bootmem(page++, 0);
 
-	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
+	bdebug("nid=%td released=%luk\n", bdata - bootmem_node_data, count << (PAGE_SHIFT - 10));
 
 	return count;
 }
@@ -239,6 +239,7 @@ static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdata)
 unsigned long __init free_all_bootmem_node(pg_data_t *pgdat)
 {
 	register_page_bootmem_info_node(pgdat);
+
 	return free_all_bootmem_core(pgdat->bdata);
 }
 
@@ -249,6 +250,7 @@ unsigned long __init free_all_bootmem_node(pg_data_t *pgdat)
  */
 unsigned long __init free_all_bootmem(void)
 {
+	
 	unsigned long total_pages = 0;
 	bootmem_data_t *bdata;
 
