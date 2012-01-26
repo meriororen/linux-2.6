@@ -9,6 +9,7 @@ config TCT
 	select OF
 	select OF_EARLY_FLATTREE
 	select HAVE_MEMBLOCK
+	select NO_IOPORT
 
 config GENERIC_GPIO
 	bool
@@ -101,8 +102,6 @@ config PM
 	  Support processor power management modes
 
 endmenu
-
-source "net/Kconfig"
 
 source "drivers/Kconfig"
 

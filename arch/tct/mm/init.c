@@ -51,16 +51,16 @@ void __init bootmem_init(void)
 {
 	struct memblock_region *reg;
 	unsigned long bootmap_size;
-	unsigned long free_pfn, end_pfn, start_pfn; /* pfn is page frame number */
+	unsigned long free_pfn, end_pfn, start_pfn; 
 
 	for_each_memblock(memory, reg) {
-		memory_start = reg->base;
-		memory_end = reg->base + reg->size;
+		memory_start = reg->base;	//0x0
+		memory_end = reg->base + reg->size;	//0x08000000	
 		break;
 	}
 
 	if(((unsigned long)__pa(_end) < memory_start) || ((unsigned long)__pa(_end) > memory_end))
-		printk("BUG: your kernel is not located in the ddr sdram"); /* __pa(addr) is addr - PAGE_OFFSET */
+		printk("BUG: your kernel is not located in the ddr sdram"); 
 
 	init_mm.start_code = (unsigned long)_stext;
 	init_mm.end_code = (unsigned long)_etext;
@@ -71,16 +71,21 @@ void __init bootmem_init(void)
 	free_pfn = PFN_UP(__pa((unsigned long)_end));
 	end_pfn = PFN_DOWN(memory_end);
 
+	//reserve for kernel
 	memblock_reserve(PFN_PHYS(start_pfn), PFN_PHYS(free_pfn - start_pfn));
 	
+	//reserve for bootmem map
 	bootmap_size = init_bootmem(free_pfn, end_pfn);
 	memblock_reserve(PFN_PHYS(free_pfn), bootmap_size);
 
-	free_bootmem(PFN_PHYS(free_pfn), PFN_PHYS(end_pfn - free_pfn));
+	//un-reserve usable pages
+	free_bootmem(PFN_PHYS(free_pfn), PFN_PHYS(end_pfn - (free_pfn)));
 
-	for_each_memblock(reserved, reg)
+	for_each_memblock(reserved, reg){
+		printk("bootmem reserved - 0x%08x-0x%08x\n",
+			reg->base, reg->size);
 		reserve_bootmem(reg->base, reg->size, BOOTMEM_DEFAULT);
-
+	}
 	memory_start += PAGE_OFFSET;
 	memory_end += PAGE_OFFSET;	
 }
@@ -102,26 +107,13 @@ void __init paging_init(void)
 
 void __init mem_init(void) 
 {
-	int reservedpages, tmp;
-	unsigned long tmpr;
-
-
 	high_memory = (void *)__va(max_low_pfn * PAGE_SIZE);
 
 	max_mapnr = num_physpages = max_low_pfn;
 
 	printk(KERN_INFO "nr_free_pages() - before freeing : %luk \n", nr_free_pages() << 2);
 
-	show_mem(0);
-
 	totalram_pages = free_all_bootmem();
-
-	reservedpages = 0;
-	for (tmp = 0; tmp < max_low_pfn; tmp++)
-		if (page_is_ram(tmp) && PageReserved(pfn_to_page(tmp)))
-			reservedpages++;
-
-	show_mem(0);
 
 	printk(KERN_INFO "nr_free_pages() - after freeing : %luk \n", nr_free_pages() << 2);
 
@@ -129,7 +121,6 @@ void __init mem_init(void)
 		nr_free_pages() << (PAGE_SHIFT - 10),
 		max_mapnr << (PAGE_SHIFT - 10),
 		(_etext - _stext) >> 10,
-		reservedpages << (PAGE_SHIFT - 10),
 		(_edata - _etext) >> 10
 		);
 

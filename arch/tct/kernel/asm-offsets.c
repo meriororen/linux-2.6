@@ -68,10 +68,13 @@ void output_ptreg_defines(void)
 	DEFINE(PT_BOS, offsetof(struct pt_regs, bos));
 	DEFINE(PT_BRP1, offsetof(struct pt_regs, brp1));
 	DEFINE(PT_BRP2, offsetof(struct pt_regs, brp2));
-	DEFINE(PT_SIZE, sizeof(struct pt_regs));
 	DEFINE(PT_MSR, offsetof(struct pt_regs, msr));
 	DEFINE(PT_EAR, offsetof(struct pt_regs, ear));
+	DEFINE(PT_ESR, offsetof(struct pt_regs, esr));
+	DEFINE(PT_ELKR, offsetof(struct pt_regs, elkr));
+	DEFINE(PT_IRQ, offsetof(struct pt_regs, irq));
 	DEFINE(PT_IMASK, offsetof(struct pt_regs, ear));
+	DEFINE(PT_SIZE, sizeof(struct pt_regs));
 	BLANK();
 }
 

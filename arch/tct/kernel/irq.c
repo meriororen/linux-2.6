@@ -17,42 +17,79 @@ static inline uint32_t tct_pic_get_irq_mask(struct irq_data *data)
 static void tct_pic_irq_mask(struct irq_data *data)
 {
 	uint32_t mask = tct_pic_get_irq_mask(data);
+	uint32_t irq;
+	unsigned long tmp = 0;
+
 	__asm__ __volatile__(
-		" /*mfs	r0, msr*/ .word 0x18000000	\n"
-		" not r0, r0				\n"
-		" nor r0, r0, %0			\n"
-		:  
-		: "r"(mask)
-		:
+		"mov %2, r25			\n"
+		".word 0x1A819000		\n" /* mfs r0, irq */
+		"mov %0, r25			\n"
+		"not %0, %0			\n"
+		"orr %0, %0, %1			\n"
+		"not %0, %0			\n"
+		"mov r25, %0			\n"
+		".word 0x1A839000		\n"
+		"mov r25, %2			\n"
+		: "=&r"(irq)
+		: "r"(mask), "r"(tmp)
 	);
 }
 
 static void tct_pic_irq_unmask(struct irq_data *data)
 {
-	//uint32_t mask = tct_pic_get_irq_mask(data);
-	
+	uint32_t mask = tct_pic_get_irq_mask(data);
+	unsigned long tmp = 0;
+	uint32_t irq;
+
 	__asm__ __volatile__(
-		""
+		"mov %2, r25			\n"
+		".word 0x1A819000		\n"
+		"mov %0, r25			\n"
+		"orr %0, %0, %1			\n"
+		"mov r25, %0			\n"
+		".word 0x1A839000		\n"
+		"mov r25, %2			\n"
+		: "=&r"(irq)
+		: "r"(mask), "r"(tmp)
 	);
 }
 
 static void tct_pic_irq_ack(struct irq_data *data)
 {
-	//uint32_t mask = tct_pic_get_irq_mask(data);
+	uint32_t mask = tct_pic_get_irq_mask(data);
+	unsigned long tmp = 0;
 
-	__asm__ __volatile__(" /**/");
+	__asm__ __volatile__(
+		"mov %1, r25			\n"
+		"mov r25, %0			\n"
+		".word 0x1A439000		\n"
+		"mov r25, %1			\n"
+		: 
+		: "r"(mask), "r"(tmp)
+	);
 }
 
 static void tct_pic_irq_mask_ack(struct irq_data *data)
 {
-	//uint32_t mask = tct_pic_get_irq_mask(data);
+	uint32_t mask = tct_pic_get_irq_mask(data);
+	unsigned long tmp = 0;
+	uint32_t irq;
 
 	__asm__ __volatile__ (
-		""
+		"mov %2, r25			\n"
+		".word 0x1A819000		\n"
+		"mov %0, r25			\n"
+		"not %0, %0			\n"
+		"orr %0, %0, %1			\n"
+		"not %0, %0			\n"
+		"mov r25, %0			\n"
+		".word 0x1A839000		\n"
+		"mov r25, %1			\n"
+		"mov r25, %2			\n"
+		: "=&r"(irq)
+		: "r"(mask), "r"(tmp)
 	);
 }
-
-
 
 
 static struct irq_chip tct_irq_chip = {
@@ -65,17 +102,28 @@ static struct irq_chip tct_irq_chip = {
 
 void __init init_IRQ(void)
 {
-//	unsigned int irq;
-	
-	printk("%s: called\n", __func__);
+	unsigned int irq;
+	unsigned long tmp = 0;
+
 	local_irq_disable();
-	/* need status and ctl registers */
+	__asm__ __volatile__(
+		"mov %0, r25			\n"
+		"mov r25, 0x0			\n"
+		".word 0x1A839000		\n"
+		"mov r25, %0			\n"
+		:
+		: "r"(tmp)
+	);	
 	
-	
+	for (irq = 0; irq < NR_IRQS; irq++) {
+		irq_set_chip(irq, &tct_irq_chip);
+		irq_set_chip_data(irq, (void *)(1 << irq));
+		irq_set_handler(irq, handle_level_irq);
+	}
+
 }
 int arch_show_interrupts(struct seq_file *p, int prec)
 {
-	printk("%s: called\n", __func__);
 	seq_printf(p, "%*s: %10u\n", prec, "ERR", atomic_read(&irq_err_count));
 	return 0;
 }
@@ -104,4 +152,3 @@ asmlinkage void asm_do_IRQ(unsigned int irq, struct pt_regs *regs)
 
 	set_irq_regs(old_regs);
 }
-

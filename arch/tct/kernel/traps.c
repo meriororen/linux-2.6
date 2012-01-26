@@ -36,12 +36,20 @@
 
 #include <asm/system.h>
 #include <asm/sections.h>
+#include <asm/hw/registers.h>
+
+#define TCT_PRIVILEGED 	0x1
+#define TCT_UNDEFINED 	0x2
+#define TCT_ITLB      	0x3
+#define TCT_DTLB      	0x4
+#define TCT_FETCH_ABORT	0x5
+#define TCT_DATA_ABORT	0x6
+#define TCT_ZERO_DIV	0x7
+
 
 void __init trap_init(void)
 {
-	
-	/* should get exception vector address here */
-
+	/* Nothing to be done */
 }
 
 int kstack_depth_to_print = 48;
@@ -107,7 +115,7 @@ void show_stack(struct task_struct *task, unsigned long *stack)
 	show_trace(task, stack);
 }
 
-asmlinkage unsigned long asm_do_sig(unsigned long vec, struct pt_regs *regs)
+asmlinkage unsigned long asm_do_sig(unsigned long esr, struct pt_regs *regs)
 {
 	struct siginfo info;
 	struct task_struct *tsk;
@@ -117,9 +125,48 @@ asmlinkage unsigned long asm_do_sig(unsigned long vec, struct pt_regs *regs)
 	unsigned long addr;
 	//register unsigned long sp asm("sp");
 
-	switch(vec)
+	switch(esr & ESR_CODE)
 	{
-		
+		case TCT_PRIVILEGED:
+			addr = regs->elkr;
+			printk("Privileged Instruction Exception @ %lx\n", addr);
+			sig = SIGSEGV;
+			break;
+		case TCT_UNDEFINED:
+			addr = regs->elkr;
+			printk("Undefined Instruction Exception @ %lx\n", addr);
+			sig = SIGSEGV;
+			break;
+		case TCT_ITLB:
+			addr = regs->elkr;
+			printk("Instruction TLB Exception @ %lx\n", addr);
+			sig = SIGSEGV;
+			break;
+		case TCT_DTLB:
+			addr = regs->elkr;
+			printk("Data TLB Exception @ %lx\n", addr);
+			sig = SIGSEGV;
+			break;
+		case TCT_FETCH_ABORT:
+			addr = regs->elkr;
+			printk("Fetch Abort Exception @ address %lx\n", addr);
+			sig = SIGABRT;
+			break;
+		case TCT_DATA_ABORT:/*interrupt exception */
+			addr = regs->elkr;
+			printk("Data Abort Exception @ %lx\n", addr);
+			sig = SIGABRT;
+			break; 
+		case TCT_ZERO_DIV:/*interrupt exception */
+			addr = regs->elkr;
+			printk("Zero Division Exception @ %lx\n", addr);
+			sig = SIGSEGV;
+			break;	
+		default:
+			addr = regs->elkr;
+			printk("Unknown exception, defaulting to SIGSEGV @ %lx\n", addr);
+			sig = SIGSEGV;
+			break;		 	
 	}
 
 	memset(&info, 0, sizeof(info));

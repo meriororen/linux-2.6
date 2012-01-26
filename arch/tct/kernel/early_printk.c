@@ -4,12 +4,14 @@
 #include <asm/irq.h>
 #include <asm/hw/tct-board.h>
 #include <linux/io.h>
+#include <asm/irqflags.h>
 
 static void __init early_console_putc(char c)
 {
 
 	unsigned int timeout = 1000;
 	uint32_t pending;
+	
 
 	iowrite32(c, UART_RXTX);
 	

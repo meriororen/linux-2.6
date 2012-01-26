@@ -11,12 +11,16 @@
 
 static inline void arch_local_irq_disable(void)
 {
+	unsigned long tmp = 0;
+
 	asm volatile ( 
-		" /* mfs r0, msr*/ .word 0x18000000 	\n"
-		" and	r0, r0, %0			\n"	
-		" /* mts msr, r0*/ .word 0x18020000	\n"
+		" mov %1, r5				\n"
+		" /* mfs r5, msr*/ .word 0x18005000 	\n"
+		" and	r5, r5, %0			\n"	
+		" /* mts msr, r5*/ .word 0x18025000	\n"
+		" mov r5, %1				\n"
 		: 
-		: "i" (~MSR_IRQ)
+		: "i" (~MSR_IRQ), "r"(tmp)
 		: "memory"
 	);
 }
@@ -24,14 +28,17 @@ static inline void arch_local_irq_disable(void)
 static inline unsigned long arch_local_irq_save(void)
 {
 	unsigned long flags;
+	unsigned long tmp = 0;
 
 	asm volatile (
-		" /* mfs r0, msr */ .word 0x18000000	\n"
-		" mov	%0, r0				\n"
-		" and	r0, r0, %1			\n"
-		" /* mts msr, r0 */ .word 0x18020000	\n"
+		" mov %2, r5				\n"
+		" /* mfs r5, msr */ .word 0x18005000	\n"
+		" mov	%0, r5				\n"
+		" and	r5, r5, %1			\n"
+		" /* mts msr, r5 */ .word 0x18025000	\n"
+		" mov r5, %2				\n"
 		: "=r"(flags)
-		: "i"(~MSR_IRQ)
+		: "i"(~MSR_IRQ), "r"(tmp)
 		: "memory"
 	);
 	return flags;
@@ -40,12 +47,15 @@ static inline unsigned long arch_local_irq_save(void)
 static inline unsigned long arch_local_save_flags(void)
 {
 	unsigned long flags;
+	unsigned long tmp = 0;
 
 	asm volatile (
-		" /* mfs r0, msr */ .word 0x18000000	\n"
-		" mov %0, r0				\n"
+		" mov %1, r5				\n"
+		" /* mfs r5, msr */ .word 0x18005000	\n"
+		" mov %0, r5				\n"
+		" mov r5, %1				\n"
 		: "=r" (flags)
-		: 
+		: "r"(tmp)
 		: "memory"
 	); 
 	return flags; 
@@ -55,25 +65,31 @@ static inline unsigned long arch_local_save_flags(void)
 
 static inline void arch_local_irq_enable(void)
 {
+	unsigned long tmp = 0;
 
 	asm volatile(
-		" /* mfs r0, msr */ .word 0x18000000	\n"
-		" orr	r0, %0				\n"
-		" /* mts msr, r0 */ .word 0x18020000	\n"
+		" mov %1, r5				\n"
+		" /* mfs r5, msr */ .word 0x18005000	\n"
+		" orr	r5, %0				\n"
+		" /* mts msr, r5 */ .word 0x18025000	\n"
+		" mov r5, %1				\n"
 		: 
-		: "i"(MSR_IRQ)
+		: "i"(MSR_IRQ), "r"(tmp)
 		: "memory"
 	);
 }
 
 static inline void arch_local_irq_restore(unsigned long flags)
 {
+	unsigned long tmp = 0;	
 
 	asm volatile(
-		" mov r0, %0				\n"
-		" /* mts msr, r0 */ .word 0x18020000	\n"
+		" mov %1, r5				\n"
+		" mov r5, %0				\n"
+		" /* mts msr, r5 */ .word 0x18025000	\n"
+		" mov r5, %1				\n"
 		: 
-		: "r"(flags)
+		: "r"(flags), "r"(tmp)
 		: "memory"
 	);
 }

@@ -8,11 +8,9 @@
 
 typedef unsigned long tct_reg_t;
 
-/* defines the way the registers are stored on the
-   stack during a system call */
 struct pt_regs {
-	tct_reg_t r0;
-	tct_reg_t r1;
+	tct_reg_t r0;	//4				
+	tct_reg_t r1;	//8
 	tct_reg_t r2;
 	tct_reg_t r3;
 	tct_reg_t r4;
@@ -36,17 +34,21 @@ struct pt_regs {
 	tct_reg_t r22;
 	tct_reg_t r23;
 	tct_reg_t r24;
-	tct_reg_t r25;
-	tct_reg_t lkr;
-	tct_reg_t fp;
-	tct_reg_t sp;
-	tct_reg_t bos;
-	tct_reg_t brp1;
+	tct_reg_t r25;	//sp + 104
+	tct_reg_t lkr; /* return address register (sp+108)*/
+	tct_reg_t fp;  //112
+	tct_reg_t sp;  //116
+	/* we don't use these yet */
+	tct_reg_t bos; //120
+	tct_reg_t brp1; //124
 	tct_reg_t brp2;
-	tct_reg_t msr;
-	tct_reg_t ear;
-	tct_reg_t irq;
-	tct_reg_t imask;
+	/* -----------------------*/
+	tct_reg_t msr; /* machine status register 132*/
+	tct_reg_t ear; /* exception address register 136*/
+	tct_reg_t esr; /* exception status register 140*/
+	tct_reg_t elkr; /* exception return address register 144*/
+	tct_reg_t irq; /* irq register 148*/
+	tct_reg_t imask; /* interrupt mask register 152*/
 	unsigned int pt_mode;
 };
 
