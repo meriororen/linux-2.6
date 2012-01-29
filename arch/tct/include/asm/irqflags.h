@@ -17,7 +17,7 @@ static inline void arch_local_irq_disable(void)
 		" /* mts msr, r0*/ .word 0x18020000	\n"
 		: 
 		: "i" (~MSR_IRQ)
-		: "memory"
+		: "R0"
 	);
 }
 
@@ -31,8 +31,8 @@ static inline unsigned long arch_local_irq_save(void)
 		" and	r0, r0, %1			\n"
 		" /* mts msr, r0 */ .word 0x18020000	\n"
 		: "=r"(flags)
-		: "i"(~MSR_IRQ)
-		: "memory"
+		: "i"(~MSR_IRQ) 
+		: "R0"
 	);
 	return flags;
 }
@@ -46,7 +46,7 @@ static inline unsigned long arch_local_save_flags(void)
 		" mov %0, r0				\n"
 		: "=r" (flags)
 		: 
-		: "memory"
+		: "R0"
 	); 
 	return flags; 
 }
@@ -62,19 +62,18 @@ static inline void arch_local_irq_enable(void)
 		" /* mts msr, r0 */ .word 0x18020000	\n"
 		: 
 		: "i"(MSR_IRQ)
-		: "memory"
+		: "R0"
 	);
 }
 
 static inline void arch_local_irq_restore(unsigned long flags)
 {
-
 	asm volatile(
 		" mov r0, %0				\n"
 		" /* mts msr, r0 */ .word 0x18020000	\n"
 		: 
 		: "r"(flags)
-		: "memory"
+		: "R0"
 	);
 }
 

@@ -52,10 +52,10 @@ void __init bootmem_init(void)
 	struct memblock_region *reg;
 	unsigned long bootmap_size;
 	unsigned long free_pfn, end_pfn, start_pfn; 
-
-	for_each_memblock(memory, reg) {
-		memory_start = reg->base;	//0x0
-		memory_end = reg->base + reg->size;	//0x08000000	
+	
+	for_each_memblock(memory, reg){
+		memory_start = reg->base;
+		memory_end = reg->base + reg->size;
 		break;
 	}
 
@@ -71,23 +71,33 @@ void __init bootmem_init(void)
 	free_pfn = PFN_UP(__pa((unsigned long)_end));
 	end_pfn = PFN_DOWN(memory_end);
 
+	printk("_end = %#lx memory_end = %#lx\n start_pfn=%lx free_pfn=%lx end_pfn=%lx memory_start=%lx\n", 
+		_end, memory_end, start_pfn, free_pfn, end_pfn, memory_start);
+
 	//reserve for kernel
 	memblock_reserve(PFN_PHYS(start_pfn), PFN_PHYS(free_pfn - start_pfn));
-	
+
 	//reserve for bootmem map
 	bootmap_size = init_bootmem(free_pfn, end_pfn);
 	memblock_reserve(PFN_PHYS(free_pfn), bootmap_size);
 
+	printk("bootmap size is %lx starting from %lx (PFN %lx)\n", bootmap_size, PFN_PHYS(free_pfn), free_pfn);
+
 	//un-reserve usable pages
-	free_bootmem(PFN_PHYS(free_pfn), PFN_PHYS(end_pfn - (free_pfn)));
+	printk("freeing usable memory..\n");
+	free_bootmem(PFN_PHYS(free_pfn), PFN_PHYS(end_pfn - free_pfn));
 
 	for_each_memblock(reserved, reg){
 		printk("bootmem reserved - 0x%08x-0x%08x\n",
 			reg->base, reg->size);
-		reserve_bootmem(reg->base, reg->size, BOOTMEM_DEFAULT);
+			reserve_bootmem(reg->base, reg->size, BOOTMEM_DEFAULT);
 	}
+
 	memory_start += PAGE_OFFSET;
 	memory_end += PAGE_OFFSET;	
+
+	printk("bootmem_init succesful \n");
+
 }
 
 /* 

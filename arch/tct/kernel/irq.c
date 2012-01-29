@@ -18,10 +18,8 @@ static void tct_pic_irq_mask(struct irq_data *data)
 {
 	uint32_t mask = tct_pic_get_irq_mask(data);
 	uint32_t irq;
-	unsigned long tmp = 0;
 
 	__asm__ __volatile__(
-		"mov %2, r25			\n"
 		".word 0x1A819000		\n" /* mfs r0, irq */
 		"mov %0, r25			\n"
 		"not %0, %0			\n"
@@ -29,54 +27,48 @@ static void tct_pic_irq_mask(struct irq_data *data)
 		"not %0, %0			\n"
 		"mov r25, %0			\n"
 		".word 0x1A839000		\n"
-		"mov r25, %2			\n"
 		: "=&r"(irq)
-		: "r"(mask), "r"(tmp)
+		: "r"(mask)
+		: "R25"
 	);
 }
 
 static void tct_pic_irq_unmask(struct irq_data *data)
 {
 	uint32_t mask = tct_pic_get_irq_mask(data);
-	unsigned long tmp = 0;
 	uint32_t irq;
 
 	__asm__ __volatile__(
-		"mov %2, r25			\n"
 		".word 0x1A819000		\n"
 		"mov %0, r25			\n"
 		"orr %0, %0, %1			\n"
 		"mov r25, %0			\n"
 		".word 0x1A839000		\n"
-		"mov r25, %2			\n"
 		: "=&r"(irq)
-		: "r"(mask), "r"(tmp)
+		: "r"(mask)
+		: "R25"
 	);
 }
 
 static void tct_pic_irq_ack(struct irq_data *data)
 {
 	uint32_t mask = tct_pic_get_irq_mask(data);
-	unsigned long tmp = 0;
 
 	__asm__ __volatile__(
-		"mov %1, r25			\n"
 		"mov r25, %0			\n"
 		".word 0x1A439000		\n"
-		"mov r25, %1			\n"
 		: 
-		: "r"(mask), "r"(tmp)
+		: "r"(mask)
+		: "R25"
 	);
 }
 
 static void tct_pic_irq_mask_ack(struct irq_data *data)
 {
 	uint32_t mask = tct_pic_get_irq_mask(data);
-	unsigned long tmp = 0;
 	uint32_t irq;
 
 	__asm__ __volatile__ (
-		"mov %2, r25			\n"
 		".word 0x1A819000		\n"
 		"mov %0, r25			\n"
 		"not %0, %0			\n"
@@ -84,10 +76,9 @@ static void tct_pic_irq_mask_ack(struct irq_data *data)
 		"not %0, %0			\n"
 		"mov r25, %0			\n"
 		".word 0x1A839000		\n"
-		"mov r25, %1			\n"
-		"mov r25, %2			\n"
 		: "=&r"(irq)
-		: "r"(mask), "r"(tmp)
+		: "r"(mask)
+		: "R25"
 	);
 }
 
@@ -103,16 +94,14 @@ static struct irq_chip tct_irq_chip = {
 void __init init_IRQ(void)
 {
 	unsigned int irq;
-	unsigned long tmp = 0;
 
 	local_irq_disable();
 	__asm__ __volatile__(
-		"mov %0, r25			\n"
 		"mov r25, 0x0			\n"
 		".word 0x1A839000		\n"
-		"mov r25, %0			\n"
 		:
-		: "r"(tmp)
+		:
+		: "R25" 
 	);	
 	
 	for (irq = 0; irq < NR_IRQS; irq++) {
