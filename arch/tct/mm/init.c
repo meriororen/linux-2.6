@@ -59,7 +59,8 @@ void __init bootmem_init(void)
 		break;
 	}
 
-	if(((unsigned long)__pa(_end) < memory_start) || ((unsigned long)__pa(_end) > memory_end))
+	if(((unsigned long)__pa(_end) < memory_start) || 
+			((unsigned long)__pa(_end) > memory_end))
 		printk("BUG: your kernel is not located in the ddr sdram"); 
 
 	init_mm.start_code = (unsigned long)_stext;
@@ -71,9 +72,6 @@ void __init bootmem_init(void)
 	free_pfn = PFN_UP(__pa((unsigned long)_end));
 	end_pfn = PFN_DOWN(memory_end);
 
-	printk("_end = %#lx memory_end = %#lx\n start_pfn=%lx free_pfn=%lx end_pfn=%lx memory_start=%lx\n", 
-		_end, memory_end, start_pfn, free_pfn, end_pfn, memory_start);
-
 	//reserve for kernel
 	memblock_reserve(PFN_PHYS(start_pfn), PFN_PHYS(free_pfn - start_pfn));
 
@@ -81,23 +79,18 @@ void __init bootmem_init(void)
 	bootmap_size = init_bootmem(free_pfn, end_pfn);
 	memblock_reserve(PFN_PHYS(free_pfn), bootmap_size);
 
-	printk("bootmap size is %lx starting from %lx (PFN %lx)\n", bootmap_size, PFN_PHYS(free_pfn), free_pfn);
+	printk("bootmap size is %lu starting from %#lx (PFN %lx)\n", 
+		bootmap_size, PFN_PHYS(free_pfn), free_pfn);
 
 	//un-reserve usable pages
-	printk("freeing usable memory..\n");
 	free_bootmem(PFN_PHYS(free_pfn), PFN_PHYS(end_pfn - free_pfn));
 
 	for_each_memblock(reserved, reg){
-		printk("bootmem reserved - 0x%08x-0x%08x\n",
-			reg->base, reg->size);
-			reserve_bootmem(reg->base, reg->size, BOOTMEM_DEFAULT);
+		reserve_bootmem(reg->base, reg->size, BOOTMEM_DEFAULT);
 	}
 
 	memory_start += PAGE_OFFSET;
 	memory_end += PAGE_OFFSET;	
-
-	printk("bootmem_init succesful \n");
-
 }
 
 /* 
@@ -109,6 +102,7 @@ void __init bootmem_init(void)
 
 void __init paging_init(void)
 {
+	printk("%s: begin..\n", __func__);
 	unsigned long zones_size[MAX_NR_ZONES] = {0, };
 
 	zones_size[ZONE_NORMAL] = max_low_pfn;
@@ -121,11 +115,7 @@ void __init mem_init(void)
 
 	max_mapnr = num_physpages = max_low_pfn;
 
-	printk(KERN_INFO "nr_free_pages() - before freeing : %luk \n", nr_free_pages() << 2);
-
 	totalram_pages = free_all_bootmem();
-
-	printk(KERN_INFO "nr_free_pages() - after freeing : %luk \n", nr_free_pages() << 2);
 
 	printk(KERN_INFO "Memory available: %luk/%luk RAM, (%dk kernel code, %dk reserved, %dk data)\n",
 		nr_free_pages() << (PAGE_SHIFT - 10),

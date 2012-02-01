@@ -2,8 +2,6 @@
  * From Theobroma System's UCLINUX
  */
 
-
-
 #ifndef _ASM_TIMEX_H
 #define _ASM_TIMEX_H
 

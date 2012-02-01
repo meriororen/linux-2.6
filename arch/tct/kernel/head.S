@@ -14,7 +14,7 @@ ENTRY(_start)
 	mov	r25, 0x000F
 	/*mts 	r25, imask*/ .word 0x1A439000	
 
-	/* r1 = hardware parameters,
+	/* r1 = cmdline,
 	   r2 = initrd start,
 	   r3 = initrd end,
 	*/
@@ -31,6 +31,6 @@ ENTRY(_start)
 	and	r0, r0, 0xfd
 	/*mts	msr, r0 */ .word 0x18020000
 
-	call	machine_early_init 		/* inside kernel/setup.c */
+	call	machine_early_init
 	jmp	start_kernel				
 	

@@ -5,14 +5,10 @@ config TCT
 	select HAVE_GENERIC_HARDIRQS
 	select GENERIC_HARD_IRQS_NO_DEPRECATED
 	select GENERIC_IRQ_SHOW
-	select ARCH_REQUIRE_GPIOLIB
 	select OF
 	select OF_EARLY_FLATTREE
 	select HAVE_MEMBLOCK
 	select NO_IOPORT
-
-config GENERIC_GPIO
-	bool
 
 config MMU
 	bool

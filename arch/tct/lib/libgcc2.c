@@ -1,4 +1,4 @@
-/* Arithmetic functions taken from libgcc2 for lm32 */
+/* Arithmetic functions taken from libgcc2 for tct */
 
 typedef		 int QItype	__attribute__ ((mode (QI)));
 typedef unsigned int UQItype	__attribute__ ((mode (QI)));
@@ -34,9 +34,9 @@ extern DWtype __lshrdi3 (DWtype, word_type);
 extern DWtype __ashldi3 (DWtype, word_type);
 extern DWtype __ashrdi3 (DWtype, word_type);
 
-// big endian
+// little endian
 struct DWstruct {
-	Wtype high, low;
+	Wtype low, high;
 };
 
 typedef union

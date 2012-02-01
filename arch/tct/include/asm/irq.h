@@ -13,11 +13,11 @@ static inline void tct_irq_ack(unsigned int irq)
 	uint32_t mask = (1<<irq);
 
 	__asm__ __volatile__(
-		"mov	r25, %0 				\n"
-		"/*mts	irq, r25*/ .word 0x1A839000		\n"
+		"mov	r0, %0 				\n"
+		"/*mts	irq, r0*/ .word 0x1A820000		\n"
 		: 
 		: "r"(mask)
-		: "R25"
+		: "R0"
 	); 
 }
 
@@ -26,11 +26,11 @@ static inline uint32_t tct_irq_pending(void)
 	uint32_t ip;
 
 	__asm__ __volatile__(
-		"/*mfs	r25, irq*/ .word 0x1A819000 	\n"
-		"mov	%0, r25				\n"
+		"/*mfs	r0, irq*/ .word 0x1A800000 	\n"
+		"mov	%0, r0				\n"
 		: "=r"(ip)
 		: 
-		: "R25"
+		: "R0"
 	);
 	return ip;
 }

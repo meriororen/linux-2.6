@@ -1,27 +1,4 @@
 /*
- * (C) Copyright 2007
- *     Theobroma Systems <www.theobroma-systems.com>
- *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- */
-
-/*
  * Partially based on
  *
  * linux/arch/m68knommu/kernel/setup.c
@@ -76,8 +53,8 @@ void __init early_init_dt_add_memory_arch(u64 base, u64 size)
 
 void * __init early_init_dt_alloc_memory_arch(u64 size, u64 align)
 {
-	/* return __va(memblock_alloc(size, align)); */
-	return __alloc_bootmem(size, align, 0);
+	// return __va(memblock_alloc(size, align));
+	return __alloc_bootmem(size, align, 0x0);
 }
 
 #ifdef CONFIG_BLK_DEV_INITRD
@@ -99,7 +76,7 @@ void __init early_init_devtree(void *params)
   	 * size, and more ...
      	 */
 	of_scan_flat_dt(early_init_dt_scan_chosen, cmd_line);
-	
+
 	/* Scan memory nodes */
 	memblock_init();
 	of_scan_flat_dt(early_init_dt_scan_root, NULL);
@@ -116,11 +93,12 @@ static void __init device_tree_init(void)
 	if(!initial_boot_params) return;
 
 	base = __pa(initial_boot_params);
-	size = le32_to_cpu(initial_boot_params->totalsize);
+	size = be32_to_cpu(initial_boot_params->totalsize);
 
 	/* Reserve the dt blob */
 	memblock_reserve(base, size);
 
+	printk("unflatten_device_tree()...\n");
 	unflatten_device_tree();
 
 	/* free the space reserved for the dt blob */
@@ -135,6 +113,7 @@ static void __init device_tree_init(void)
 		cpu_frequency = (unsigned long)CONFIG_CPU_CLOCK;
 
 	of_node_put(cpu);
+	printk("%s: finished.\n", __func__);
 }
 
 extern char __dtb_start[];
@@ -156,7 +135,7 @@ void __init machine_early_init(char *cmdline, unsigned long p_initrd_start,
 	initrd_end = p_initrd_end;
 
 	early_init_devtree(__dtb_start);
-	printk("initrd: %lx %lx size: %lu\n", initrd_start, initrd_end, initrd_end - initrd_start);
+	printk("initrd: %lx %lx size: %lu \n", initrd_start, initrd_end, initrd_end - initrd_start);
 	memblock_reserve(__pa(initrd_start), initrd_end - initrd_start);
 }
 
@@ -197,4 +176,3 @@ static int __init tct_device_probe(void)
 	return 0;
 }
 arch_initcall(tct_device_probe);
-

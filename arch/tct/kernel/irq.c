@@ -20,16 +20,16 @@ static void tct_pic_irq_mask(struct irq_data *data)
 	uint32_t irq;
 
 	__asm__ __volatile__(
-		".word 0x1A819000		\n" /* mfs r0, irq */
-		"mov %0, r25			\n"
+		".word 0x1A800000		\n" /* mfs r0, irq */
+		"mov %0, r0			\n"
 		"not %0, %0			\n"
 		"orr %0, %0, %1			\n"
 		"not %0, %0			\n"
-		"mov r25, %0			\n"
-		".word 0x1A839000		\n"
+		"mov r0, %0			\n"
+		".word 0x1A820000		\n"
 		: "=&r"(irq)
 		: "r"(mask)
-		: "R25"
+		: "R0"
 	);
 }
 
@@ -39,14 +39,14 @@ static void tct_pic_irq_unmask(struct irq_data *data)
 	uint32_t irq;
 
 	__asm__ __volatile__(
-		".word 0x1A819000		\n"
-		"mov %0, r25			\n"
+		".word 0x1A800000		\n"
+		"mov %0, r0			\n"
 		"orr %0, %0, %1			\n"
-		"mov r25, %0			\n"
-		".word 0x1A839000		\n"
+		"mov r0, %0			\n"
+		".word 0x1A820000		\n"
 		: "=&r"(irq)
 		: "r"(mask)
-		: "R25"
+		: "R0"
 	);
 }
 
@@ -55,11 +55,11 @@ static void tct_pic_irq_ack(struct irq_data *data)
 	uint32_t mask = tct_pic_get_irq_mask(data);
 
 	__asm__ __volatile__(
-		"mov r25, %0			\n"
-		".word 0x1A439000		\n"
+		"mov r0, %0			\n"
+		".word 0x1A420000		\n"
 		: 
 		: "r"(mask)
-		: "R25"
+		: "R0"
 	);
 }
 
@@ -69,22 +69,22 @@ static void tct_pic_irq_mask_ack(struct irq_data *data)
 	uint32_t irq;
 
 	__asm__ __volatile__ (
-		".word 0x1A819000		\n"
-		"mov %0, r25			\n"
+		".word 0x1A800000		\n"
+		"mov %0, r0			\n"
 		"not %0, %0			\n"
 		"orr %0, %0, %1			\n"
 		"not %0, %0			\n"
-		"mov r25, %0			\n"
-		".word 0x1A839000		\n"
+		"mov r0, %0			\n"
+		".word 0x1A820000		\n"
 		: "=&r"(irq)
 		: "r"(mask)
-		: "R25"
+		: "R0"
 	);
 }
 
 
 static struct irq_chip tct_irq_chip = {
-	.name		= "LM32 PIC",
+	.name		= "lm32-pic",
 	.irq_ack	= tct_pic_irq_ack,
 	.irq_mask	= tct_pic_irq_mask,
 	.irq_mask_ack	= tct_pic_irq_mask_ack,
@@ -97,11 +97,11 @@ void __init init_IRQ(void)
 
 	local_irq_disable();
 	__asm__ __volatile__(
-		"mov r25, 0x0			\n"
-		".word 0x1A839000		\n"
+		"mov r0, 0x0			\n"
+		".word 0x1A820000		\n"
 		:
 		:
-		: "R25" 
+		: "R0" 
 	);	
 	
 	for (irq = 0; irq < NR_IRQS; irq++) {

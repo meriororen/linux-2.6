@@ -131,41 +131,49 @@ asmlinkage unsigned long asm_do_sig(unsigned long esr, struct pt_regs *regs)
 			addr = regs->elkr;
 			printk("Privileged Instruction Exception @ %lx\n", addr);
 			sig = SIGSEGV;
+			trapidx = 1;
 			break;
 		case TCT_UNDEFINED:
 			addr = regs->elkr;
 			printk("Undefined Instruction Exception @ %lx\n", addr);
 			sig = SIGSEGV;
+			trapidx = 2;
 			break;
 		case TCT_ITLB:
 			addr = regs->elkr;
 			printk("Instruction TLB Exception @ %lx\n", addr);
 			sig = SIGSEGV;
+			trapidx = 3;
 			break;
 		case TCT_DTLB:
 			addr = regs->elkr;
 			printk("Data TLB Exception @ %lx\n", addr);
 			sig = SIGSEGV;
+			trapidx = 4;
 			break;
 		case TCT_FETCH_ABORT:
 			addr = regs->elkr;
 			printk("Fetch Abort Exception @ address %lx\n", addr);
 			sig = SIGABRT;
+			trapidx= 5;
 			break;
 		case TCT_DATA_ABORT:/*interrupt exception */
 			addr = regs->elkr;
 			printk("Data Abort Exception @ %lx\n", addr);
 			sig = SIGABRT;
+			trapidx = 6;
 			break; 
 		case TCT_ZERO_DIV:/*interrupt exception */
 			addr = regs->elkr;
 			printk("Zero Division Exception @ %lx\n", addr);
 			sig = SIGSEGV;
+			trapidx = 7;
 			break;	
 		default:
 			addr = regs->elkr;
 			printk("Unknown exception, defaulting to SIGSEGV @ %lx\n", addr);
 			sig = SIGSEGV;
+			trapidx = 8;
 			break;		 	
 	}
 
