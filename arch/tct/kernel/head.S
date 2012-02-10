@@ -10,9 +10,10 @@ ENTRY(_start)
 	orr	sp, lo(init_thread_union)
 	addi	sp, sp, THREAD_SIZE - 4
 	
+	
 	/* clear IMASK  */
-	mov	r25, 0x000F
-	/*mts 	r25, imask*/ .word 0x1A439000	
+	xor	r0, r0, r0
+	/*mts 	r0, imask*/ .word 0x1A420000
 
 	/* r1 = cmdline,
 	   r2 = initrd start,

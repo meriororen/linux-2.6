@@ -7,7 +7,6 @@ BOARD := $(board-y)
 
 export BOARD
 
-
 OBJCOPYFLAGS := -O binary -R .note -R .comment -S
 
 head-y := arch/tct/kernel/head.o arch/tct/kernel/init_task.o

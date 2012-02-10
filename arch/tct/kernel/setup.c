@@ -23,7 +23,6 @@
 #include <linux/bootmem.h>
 #include <linux/memblock.h>
 
-
 #include <asm/sections.h>
 #include <asm/pgtable.h>
 #include <asm/page.h>
@@ -145,6 +144,7 @@ void __init setup_arch(char **cmdline_p)
 	 * init "current thread structure" pointer
  	 */
 	tct_current_thread = (struct thread_info*)&init_thread_union;
+	
 
 	strlcpy(boot_command_line, cmd_line, COMMAND_LINE_SIZE);
 	*cmdline_p = cmd_line;

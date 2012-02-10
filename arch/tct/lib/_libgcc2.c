@@ -1,4 +1,6 @@
-typedef		  int QItype	__attribute__ ((mode (QI)));
+/* Arithmetic functions taken from libgcc2 for tct */
+
+typedef		 int QItype	__attribute__ ((mode (QI)));
 typedef unsigned int UQItype	__attribute__ ((mode (QI)));
 typedef		 int HItype	__attribute__ ((mode (HI)));
 typedef unsigned int UHItype	__attribute__ ((mode (HI)));
@@ -7,30 +9,38 @@ typedef unsigned int USItype	__attribute__ ((mode (SI)));
 typedef		 int DItype	__attribute__ ((mode (DI)));
 typedef unsigned int UDItype	__attribute__ ((mode (DI)));
 
-typedef 	float SFtype	__attribute__ ((mode (SF)));
-typedef		float DFtype	__attribute__ ((mode (DF)));
+typedef int cmp_return_type __attribute__((mode (__libgcc_cmp_return__)));
+typedef int shift_count_type __attribute__((mode (__libgcc_shift_count__)));
 
-typedef int word_type __attribute__ ((mode (__word__)));
 
 #define BITS_PER_UNIT 8
 
+#define W_TYPE_SIZE (4 * BITS_PER_UNIT)
 #define Wtype	SItype
 #define UWtype	USItype
 #define HWtype	SItype
 #define UHWtype	USItype
 #define DWtype	DItype
 #define UDWtype	UDItype
+#define __NW(a,b)	__ ## a ## si ## b
+#define __NDW(a,b)	__ ## a ## di ## b
 
 extern UDWtype __umulsidi3 (UWtype, UWtype);
+
+#define Wtype_MAX ((Wtype)(((UWtype)1 << (W_TYPE_SIZE - 1)) - 1))
+#define Wtype_MIN (- Wtype_MAX - 1)
+
+#define Wtype_MAXp1_F	0x1p32f
+
 extern DWtype __muldi3 (DWtype, DWtype);
 extern DWtype __divdi3 (DWtype, DWtype);
 extern UDWtype __udivdi3 (UDWtype, UDWtype);
 extern UDWtype __umoddi3 (UDWtype, UDWtype);
 extern DWtype __moddi3 (DWtype, DWtype);
 extern DWtype __negdi2 (DWtype);
-extern DWtype __lshrdi3 (DWtype, word_type);
-extern DWtype __ashldi3 (DWtype, word_type);
-extern DWtype __ashrdi3 (DWtype, word_type);
+extern DWtype __lshrdi3 (DWtype, shift_count_type);
+extern DWtype __ashldi3 (DWtype, shift_count_type);
+extern DWtype __ashrdi3 (DWtype, shift_count_type);
 
 // little endian
 struct DWstruct {
@@ -53,7 +63,6 @@ __negdi2 (DWtype u)
   return w.ll;
 }
 
-#define W_TYPE_SIZE	32
 #define __ll_B ((UWtype) 1 << (W_TYPE_SIZE / 2))
 #define __ll_lowpart(t) ((UWtype) (t) & (__ll_B - 1))
 #define __ll_highpart(t) ((UWtype) (t) >> (W_TYPE_SIZE / 2))
@@ -100,14 +109,14 @@ __muldi3 (DWtype u, DWtype v)
 }
 
 DWtype
-__lshrdi3 (DWtype u, word_type b)
+__lshrdi3 (DWtype u, shift_count_type b)
 {
-  const DWunion uu = {.ll = u};
-  const word_type bm = (sizeof (Wtype) * BITS_PER_UNIT) - b;
-  DWunion w;
-
   if (b == 0)
     return u;
+
+  const DWunion uu = {.ll = u};
+  const shift_count_type bm = (sizeof (Wtype) * BITS_PER_UNIT) - b;
+  DWunion w;
 
   if (bm <= 0)
     {
@@ -126,14 +135,14 @@ __lshrdi3 (DWtype u, word_type b)
 }
 
 DWtype
-__ashldi3 (DWtype u, word_type b)
+__ashldi3 (DWtype u, shift_count_type b)
 {
-  const DWunion uu = {.ll = u};
-  const word_type bm = (sizeof (Wtype) * BITS_PER_UNIT) - b;
-  DWunion w;
-
   if (b == 0)
     return u;
+
+  const DWunion uu = {.ll = u};
+  const shift_count_type bm = (sizeof (Wtype) * BITS_PER_UNIT) - b;
+  DWunion w;
 
   if (bm <= 0)
     {
@@ -152,13 +161,13 @@ __ashldi3 (DWtype u, word_type b)
 }
 
 DWtype
-__ashrdi3 (DWtype u, word_type b)
+__ashrdi3 (DWtype u, shift_count_type b)
 {
   if (b == 0)
     return u;
 
   const DWunion uu = {.ll = u};
-  const word_type bm = (sizeof (Wtype) * BITS_PER_UNIT) - b;
+  const shift_count_type bm = (sizeof (Wtype) * BITS_PER_UNIT) - b;
   DWunion w;
 
   if (bm <= 0)

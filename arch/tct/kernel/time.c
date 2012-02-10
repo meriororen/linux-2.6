@@ -73,7 +73,7 @@ static cycle_t tct_clocksource_read(struct clocksource *cs)
 }
 
 static struct clocksource tct_clocksource = {
-	.name = "lm32-timer",
+	.name = "tct-timer",
 	.rating = 200,
 	.read = tct_clocksource_read,
 	.mask = CLOCKSOURCE_MASK(32),
@@ -123,7 +123,7 @@ static int tct_clockevent_set_next(unsigned long evt,
 }
 
 static struct clock_event_device tct_clockevent = {
-	.name = "lm32-timer",
+	.name = "tct-timer",
 	.features = CLOCK_EVT_FEAT_PERIODIC,
 	.set_next_event = tct_clockevent_set_next,
 	.set_mode = tct_clockevent_set_mode,
@@ -134,7 +134,7 @@ static struct clock_event_device tct_clockevent = {
 static struct irqaction timer_irqaction = {
 	.handler	= tct_clockevent_irq,
 	.flags		= IRQF_TIMER,
-	.name		= "lm32-timerirq",
+	.name		= "tct-timerirq",
 	.dev_id		= &tct_clockevent,
 };
 
@@ -145,8 +145,7 @@ void __init time_init(void)
 	tct_ticks_per_jiffy = DIV_ROUND_CLOSEST(CONFIG_CPU_CLOCK, HZ);
 
 	clockevents_calc_mult_shift(&tct_clockevent, CONFIG_CPU_CLOCK, 5);
-	printk("mult:%d shift:%d \n", tct_clockevent.mult, tct_clockevent.shift);
-
+	
 	tct_clockevent.min_delta_ns = clockevent_delta2ns(100, &tct_clockevent);
 	tct_clockevent.max_delta_ns = clockevent_delta2ns(0xffff, &tct_clockevent);
 	tct_clockevent.cpumask = cpumask_of(0);
@@ -155,6 +154,9 @@ void __init time_init(void)
 	tct_timer_set_compare(TIMER_CLOCKSOURCE, 0xffffffff);
 	tct_timer_set_counter(TIMER_CLOCKSOURCE, 0);
 	tct_timer_enable(TIMER_CLOCKSOURCE, true);
+
+	printk("mult: %lx, shift: %lx\n", tct_clockevent.mult, tct_clockevent.shift);
+	printk("min_delta_ns: %lx, max_delta_ns: %lx\n", tct_clockevent.min_delta_ns, tct_clockevent.max_delta_ns);	
 
 	clockevents_register_device(&tct_clockevent);
 

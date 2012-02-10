@@ -55,7 +55,7 @@ struct pt_regs {
 #ifdef __KERNEL__
 #define user_mode(regs) ((regs)->pt_mode == PT_MODE_USER)
 
-#define instruction_pointer(regs) ((regs)->ea) /* points to EA (LM32) */
+#define instruction_pointer(regs) ((regs)->elkr) /* points to EA (LM32) */
 #define profile_pc(regs) instruction_pointer(regs)
 
 //void show_regs(struct pt_regs *);

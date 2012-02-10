@@ -153,6 +153,7 @@ int clockevents_register_notifier(struct notifier_block *nb)
  */
 static void clockevents_do_notify(unsigned long reason, void *dev)
 {
+	printk("%s...\n", __func__);
 	raw_notifier_call_chain(&clockevents_chain, reason, dev);
 }
 
@@ -181,6 +182,8 @@ void clockevents_register_device(struct clock_event_device *dev)
 {
 	unsigned long flags;
 
+	printk("clockevents_register_device..%s\n", dev->name);
+	
 	BUG_ON(dev->mode != CLOCK_EVT_MODE_UNUSED);
 	if (!dev->cpumask) {
 		WARN_ON(num_possible_cpus() > 1);
@@ -194,6 +197,7 @@ void clockevents_register_device(struct clock_event_device *dev)
 	clockevents_notify_released();
 
 	raw_spin_unlock_irqrestore(&clockevents_lock, flags);
+	printk("clockevents_register_device..registered\n");
 }
 EXPORT_SYMBOL_GPL(clockevents_register_device);
 

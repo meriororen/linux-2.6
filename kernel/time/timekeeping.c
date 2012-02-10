@@ -1073,6 +1073,8 @@ struct timespec get_monotonic_coarse(void)
  */
 void do_timer(unsigned long ticks)
 {
+	printk("do_timer..%lx\n", ticks);
+	
 	jiffies_64 += ticks;
 	update_wall_time();
 	calc_global_load(ticks);

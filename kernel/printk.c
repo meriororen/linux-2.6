@@ -508,14 +508,26 @@ void kdb_syslog_data(char *syslog_data[4])
 static void __call_console_drivers(unsigned start, unsigned end)
 {
 	struct console *con;
+	//char* tmp;
 
 	for_each_console(con) {
 		if (exclusive_console && con != exclusive_console)
 			continue;
 		if ((con->flags & CON_ENABLED) && con->write &&
 				(cpu_online(smp_processor_id()) ||
-				(con->flags & CON_ANYTIME)))
+				(con->flags & CON_ANYTIME))){
+			/*tmp = con->name;
+			__asm__ __volatile__(
+				"mov r0, %0 \n"
+				"mov r1, %1 \n"
+				"mov r2, %2 \n"
+				: 
+				: "r"(*tmp), "r"(*(tmp+1)), "r"(*(tmp+2))
+				:
+			);
+			*/
 			con->write(con, &LOG_BUF(start), end - start);
+		}
 	}
 }
 
@@ -1409,15 +1421,20 @@ void register_console(struct console *newcon)
 		}
 	}
 
-	if (console_drivers && console_drivers->flags & CON_BOOT)
+	if (console_drivers && console_drivers->flags & CON_BOOT){
+		//__asm__ __volatile__("halt");
 		bcon = console_drivers;
+	}
 
-	if (preferred_console < 0 || bcon || !console_drivers)
+	if (preferred_console < 0 || bcon || !console_drivers){
+		//__asm__ __volatile__("halt");
 		preferred_console = selected_console;
-
-	if (newcon->early_setup)
+	}
+	
+	if (newcon->early_setup){
 		newcon->early_setup();
-
+	
+	}
 	/*
 	 *	See if we want to use this console driver. If we
 	 *	didn't select a console we take the first one

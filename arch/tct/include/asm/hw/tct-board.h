@@ -3,5 +3,6 @@
 
 #include <asm/hw/uart.h>
 #include <asm/hw/interrupts.h>
+#include <asm/hw/timer.h>
 
 #endif

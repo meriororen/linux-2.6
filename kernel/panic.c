@@ -64,6 +64,7 @@ NORET_TYPE void panic(const char * fmt, ...)
 	long i, i_next = 0;
 	int state = 0;
 
+	printk("Kernel panic - not syncing: %s\n",buf);
 	/*
 	 * It's possible to come here directly from a panic-assertion and
 	 * not have preempt disabled. Some functions called from here want

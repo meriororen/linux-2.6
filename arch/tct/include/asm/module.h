@@ -8,6 +8,6 @@
 
 #include <asm-generic/module.h>
 
-#define MODULE_ARCH_VERMAGIC	"TCT"
+#define MODULE_ARCH_VERMAGIC	"TCTv1"
 
 #endif

@@ -1,165 +1,226 @@
 /*
- *  Copyright (C) 2011, Lars-Peter Clausen <lars@metafoo.de>
- *  Clockevent and clocksource driver for the Milkymist sysctl timers
+ * (C) Copyright 2007
+ *     Theobroma Systems <www.theobroma-systems.com>
  *
- *  This program is free software; you can redistribute it and/or modify it
- *  under  the terms of the GNU General  Public License as published by the
- *  Free Software Foundation;  either version 2 of the License, or (at your
- *  option) any later version.
+ * See file CREDITS for list of people who contributed to this
+ * project.
  *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  675 Mass Ave, Cambridge, MA 02139, USA.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
-#include <linux/interrupt.h>
+/*
+ * Based on
+ *
+ * linux/arch/m68knommu/kernel/time.c
+ *
+ *  Copyright (C) 1991, 1992, 1995  Linus Torvalds
+ */
+
+#include <linux/errno.h>
+#include <linux/module.h>
+#include <linux/sched.h>
 #include <linux/kernel.h>
-
-#include <linux/clockchips.h>
-#include <linux/clocksource.h>
+#include <linux/param.h>
+#include <linux/string.h>
+#include <linux/mm.h>
+#include <linux/profile.h>
+#include <linux/time.h>
 #include <linux/timex.h>
-#include <linux/io.h>
+#include <linux/interrupt.h>
 
-#include <asm/hw/interrupts.h>
-#include <asm/hw/sysctl.h>
+#include <asm/uaccess.h>
 
-#define TIMER_CLOCKEVENT 0
-#define TIMER_CLOCKSOURCE 1
+#include <asm/irq.h>
+#include <asm/hw/tct-board.h>
+#include <asm/irq_regs.h>
+#include <asm/setup.h>
 
-static uint32_t milkymist_ticks_per_jiffy;
+TCTTag_Timer_t tcttag_timer;
 
-static inline uint32_t milkymist_timer_get_counter(unsigned int timer)
+typedef struct TCT_timer {
+  volatile unsigned int  Status;
+  volatile unsigned int  Control;
+  volatile unsigned int  Period;
+  volatile unsigned int  Snapshot;
+} TCT_timer_t;
+
+static TCT_timer_t* tct_core_timer_reg = NULL;
+
+cycles_t tct_cycles = 0;
+
+static irqreturn_t timer_interrupt(int irq, void *timer_idx);
+
+/* irq action description */
+static struct irqaction tct_core_timer_irqaction = {
+	.name = "TCT Timer Tick",
+	.flags = IRQF_DISABLED,
+	.handler = timer_interrupt,
+};
+
+void tct_systimer_ack(void)
 {
-	return ioread32be(CSR_TIMER_COUNTER(timer));
+	if(likely(tct_core_timer_reg)) {
+		/* update virtual cycle counter */
+		tct_cycles += tct_core_timer_reg->Period;
+
+		/* ack interrupt in timer control */
+		tct_core_timer_reg->Status = 0;
+		/* ack interrupt */
+		tct_irq_ack(IRQ_TIMER0);
+	}
 }
 
-static inline void milkymist_timer_set_counter(unsigned int timer, uint32_t value)
+/*
+ * timer_interrupt() needs to call the "do_timer()"
+ * routine every clocktick
+ */
+static irqreturn_t timer_interrupt(int irq, void *arg)
 {
-	iowrite32be(value, CSR_TIMER_COUNTER(timer));
+	tct_systimer_ack();
+
+	write_seqlock(&xtime_lock);
+
+	do_timer(1);
+
+	if (current->pid)
+		profile_tick(CPU_PROFILING);
+
+	write_sequnlock(&xtime_lock);
+	return(IRQ_HANDLED);
 }
 
-static inline uint32_t milkymist_timer_get_compare(unsigned int timer)
+void set_timer_hw(void)
 {
-	return ioread32be(CSR_TIMER_COMPARE(timer));
+	tcttag_timer.name = "LM32-timer0";
+	tcttag_timer.addr = 0x10001000;
+	tcttag_timer.wr_tickcount = 1;
+	tcttag_timer.rd_tickcount = 1;
+	tcttag_timer.start_stop_control = 1;
+	tcttag_timer.counter_width = 32;
+	tcttag_timer.reload_ticks = 20;
+	tcttag_timer.irq = IRQ_TIMER0;
+	tcttag_timer.reserved0 = 0;
+	tcttag_timer.reserved1 = 0;
+	tcttag_timer.reserved2 = 0;
 }
 
-static inline void milkymist_timer_set_compare(unsigned int timer, uint32_t value)
+void tct_systimer_program(int periodic, cycles_t cyc)
 {
-	iowrite32be(value, CSR_TIMER_COMPARE(timer));
+	if( likely(tct_core_timer_reg) )
+	{
+		/* stop timer */
+		tct_core_timer_reg->Control = (1 << 3);  /* STOP */
+		/* reset/configure timer */
+		tct_core_timer_reg->Status = 0;
+		tct_core_timer_reg->Period = cyc;
+		/* start timer */
+		tct_core_timer_reg->Control = (
+				(1 << 0) |  /* enable interrupts */ 
+				(periodic << 1) |  /* single or periodic (CONT) */ 
+				(1 << 2));  /* START */
+	}
 }
 
-static inline void milkymist_timer_disable(unsigned int timer)
+void time_init(void)
 {
-	iowrite32be(0, CSR_TIMER_CONTROL(timer));
+	set_timer_hw();
+
+	xtime.tv_sec = 0;
+	xtime.tv_nsec = 0;
+
+	wall_to_monotonic.tv_sec = -xtime.tv_sec;
+
+	/* timer registers */
+	tct_core_timer_reg = tcttag_timer.addr;
+
+	tct_systimer_program(1, CONFIG_CPU_CLOCK / HZ);
+
+	if( setup_irq(tcttag_timer.irq, &tct_core_timer_irqaction) )
+		panic("could not attach timer interrupt!");
+
+	tct_pic_irq_unmask(tcttag_timer.irq);
 }
 
-static inline void milkymist_timer_enable(unsigned int timer, bool periodic)
+static unsigned long get_time_offset(void)
 {
-	uint32_t val = TIMER_ENABLE;
-	if (periodic);
-		val |= TIMER_AUTORESTART;
-	iowrite32be(val, CSR_TIMER_CONTROL(timer));
+	return (tct_core_timer_reg->Period - tct_core_timer_reg->Snapshot) / (CONFIG_CPU_CLOCK / HZ);
 }
 
 cycles_t get_cycles(void)
 {
-	return milkymist_timer_get_counter(TIMER_CLOCKSOURCE);
-}
-
-static cycle_t milkymist_clocksource_read(struct clocksource *cs)
-{
-	return get_cycles();
-}
-
-static struct clocksource milkymist_clocksource = {
-	.name = "milkymist-timer",
-	.rating = 200,
-	.read = milkymist_clocksource_read,
-	.mask = CLOCKSOURCE_MASK(32),
-	.flags = CLOCK_SOURCE_IS_CONTINUOUS,
-};
-
-static irqreturn_t milkymist_clockevent_irq(int irq, void *devid)
-{
-	struct clock_event_device *cd = devid;
-
-	if (cd->mode != CLOCK_EVT_MODE_PERIODIC)
-		milkymist_timer_disable(TIMER_CLOCKEVENT);
-
-	cd->event_handler(cd);
-
-	return IRQ_HANDLED;
-}
-
-static void milkymist_clockevent_set_mode(enum clock_event_mode mode,
-	struct clock_event_device *cd)
-{
-	switch (mode) {
-	case CLOCK_EVT_MODE_PERIODIC:
-		milkymist_timer_disable(TIMER_CLOCKEVENT);
-		milkymist_timer_set_counter(TIMER_CLOCKEVENT, 0);
-		milkymist_timer_set_compare(TIMER_CLOCKEVENT, milkymist_ticks_per_jiffy);
-	case CLOCK_EVT_MODE_RESUME:
-		milkymist_timer_enable(TIMER_CLOCKEVENT, true);
-		break;
-	case CLOCK_EVT_MODE_ONESHOT:
-	case CLOCK_EVT_MODE_SHUTDOWN:
-		milkymist_timer_disable(TIMER_CLOCKEVENT);
-		break;
-	default:
-		break;
-	}
-}
-
-static int milkymist_clockevent_set_next(unsigned long evt,
-	struct clock_event_device *cd)
-{
-	milkymist_timer_set_counter(TIMER_CLOCKEVENT, 0);
-	milkymist_timer_set_compare(TIMER_CLOCKEVENT, evt);
-	milkymist_timer_enable(TIMER_CLOCKEVENT, false);
-
+	if( likely(tct_core_timer_reg) )
+		return tct_cycles +
+			tct_core_timer_reg->Period - tct_core_timer_reg->Snapshot;
 	return 0;
 }
 
-static struct clock_event_device milkymist_clockevent = {
-	.name = "milkymist-timer",
-	.features = CLOCK_EVT_FEAT_PERIODIC,
-	.set_next_event = milkymist_clockevent_set_next,
-	.set_mode = milkymist_clockevent_set_mode,
-	.rating = 200,
-	.irq = IRQ_TIMER0,
-};
-
-static struct irqaction timer_irqaction = {
-	.handler	= milkymist_clockevent_irq,
-	.flags		= IRQF_TIMER,
-	.name		= "milkymist-timerirq",
-	.dev_id		= &milkymist_clockevent,
-};
-
-void __init time_init(void)
+/*
+ * This version of gettimeofday has near microsecond resolution.
+ */
+void do_gettimeofday(struct timeval *tv)
 {
-	int ret;
+	unsigned long flags;
+	unsigned long seq;
+	unsigned long usec, sec;
 
-	milkymist_ticks_per_jiffy = DIV_ROUND_CLOSEST(CONFIG_CPU_CLOCK, HZ);
+	do {
+		seq = read_seqbegin_irqsave(&xtime_lock, flags);
+		usec = get_time_offset();
+		sec = xtime.tv_sec;
+		usec += (xtime.tv_nsec / 1000);
+	} while (read_seqretry_irqrestore(&xtime_lock, seq, flags));
 
-	clockevents_calc_mult_shift(&milkymist_clockevent, CONFIG_CPU_CLOCK, 5);
-	milkymist_clockevent.min_delta_ns = clockevent_delta2ns(100, &milkymist_clockevent);
-	milkymist_clockevent.max_delta_ns = clockevent_delta2ns(0xffff, &milkymist_clockevent);
-	milkymist_clockevent.cpumask = cpumask_of(0);
+	while (usec >= 1000000) {
+		usec -= 1000000;
+		sec++;
+	}
 
-	milkymist_timer_disable(TIMER_CLOCKSOURCE);
-	milkymist_timer_set_compare(TIMER_CLOCKSOURCE, 0xffffffff);
-	milkymist_timer_set_counter(TIMER_CLOCKSOURCE, 0);
-	milkymist_timer_enable(TIMER_CLOCKSOURCE, true);
-
-	clockevents_register_device(&milkymist_clockevent);
-
-	ret = clocksource_register_hz(&milkymist_clocksource, CONFIG_CPU_CLOCK);
-
-	if (ret)
-		printk(KERN_ERR "Failed to register clocksource: %d\n", ret);
-
-	setup_irq(IRQ_TIMER0, &timer_irqaction);
+	tv->tv_sec = sec;
+	tv->tv_usec = usec;
 }
+EXPORT_SYMBOL(do_gettimeofday);
+
+int do_settimeofday(struct timespec *tv)
+{
+	time_t wtm_sec, sec = tv->tv_sec;
+	long wtm_nsec, nsec = tv->tv_nsec;
+
+	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
+		return -EINVAL;
+
+	write_seqlock_irq(&xtime_lock);
+	/*
+	 * This is revolting. We need to set the xtime.tv_usec
+	 * correctly. However, the value in this location is
+	 * is value at the last tick.
+	 * Discover what correction gettimeofday
+	 * would have done, and then undo it!
+	 */
+	nsec -= (get_time_offset() * 1000);
+
+	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
+	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
+
+	set_normalized_timespec(&xtime, sec, nsec);
+	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
+
+	ntp_clear();
+	write_sequnlock_irq(&xtime_lock);
+	clock_was_set();
+
+	return 0;
+}
+EXPORT_SYMBOL(do_settimeofday);

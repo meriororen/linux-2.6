@@ -97,4 +97,5 @@ obj-$(CONFIG_SERIAL_MSM_SMD)	+= msm_smd_tty.o
 obj-$(CONFIG_SERIAL_MXS_AUART) += mxs-auart.o
 obj-$(CONFIG_SERIAL_LANTIQ)	+= lantiq.o
 obj-$(CONFIG_SERIAL_XILINX_PS_UART) += xilinx_uartps.o
-obj-$(CONFIG_SERIAL_LM32_UART) += lm32uart.c
+obj-$(CONFIG_SERIAL_LM32_UART) += lm32uart.o
+obj-$(CONFIG_SERIAL_TCT) += tctuart.o

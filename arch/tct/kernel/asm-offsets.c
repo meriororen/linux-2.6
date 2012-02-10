@@ -73,7 +73,7 @@ void output_ptreg_defines(void)
 	DEFINE(PT_ESR, offsetof(struct pt_regs, esr));
 	DEFINE(PT_ELKR, offsetof(struct pt_regs, elkr));
 	DEFINE(PT_IRQ, offsetof(struct pt_regs, irq));
-	DEFINE(PT_IMASK, offsetof(struct pt_regs, ear));
+	DEFINE(PT_IMASK, offsetof(struct pt_regs, imask));
 	DEFINE(PT_SIZE, sizeof(struct pt_regs));
 	BLANK();
 }

@@ -11,9 +11,32 @@ static inline void __delay(unsigned long loops)
 	/* get a realistic delay by using add more often than branch
 	 * (branch needs 4 cycles if taken, add only one) */
 		
-	printk("%s: called\n", __func__);
 	asm volatile(
-		""
+		"and r2, %0, 1\n"
+		"equ r0, r2, 0\n" /* jump over next instruction */
+		"bneq	1f\n"
+		"addi %0, %0, -1\n"
+		"1:	and r2, %0, 2\n"
+		"equ r0, r2, 0\n" /* jump over next instruction */
+		"bneq	2f\n"
+		"addi %0, %0, -2\n"
+		"2:	and r2, %0, 4\n"
+		"equ r0, r2, 0\n" /* jump over next instruction */
+		"bneq 3f\n"
+		"addi %0, %0, -4\n"
+		"3:	addi %0, %0, -1\n" /* loop */ 
+		"addi %0, %0, -1\n"
+		"addi %0, %0, -1\n"
+		"addi %0, %0, -1\n"
+		"addi %0, %0, -1\n"
+		"addi %0, %0, -1\n"
+		"addi %0, %0, -1\n"
+		"addi %0, %0, -1\n"
+		"equ r0, %0, 0\n"
+		"bneq 3b\n"
+		: "=r"(loops)
+		: "0"(loops)
+		: "R2"
 	);
 }
 
@@ -28,7 +51,6 @@ static inline void __delay(unsigned long loops)
 static inline void udelay(unsigned long usecs)
 {
 	extern unsigned long loops_per_jiffy;
-	printk("%s: called\n", __func__);
 	__delay(usecs * loops_per_jiffy / (1000000 / HZ));
 }
 
