@@ -19,7 +19,7 @@
 #define TIMER_COMPARE(id) TIMER(id, 0x4)
 #define TIMER_COUNTER(id) TIMER(id, 0x8)
 
-#define TIMER_ENABLE		(0x01)
-#define TIMER_AUTORESTART	(0x02)
+#define TIMER_ENABLE		(1<<0)
+#define TIMER_AUTORESTART	(1<<1)
 
 #endif /* __HW_SYSCTL_H */

@@ -143,6 +143,7 @@ void __init time_init(void)
 	int ret;
 
 	tct_ticks_per_jiffy = DIV_ROUND_CLOSEST(CONFIG_CPU_CLOCK, HZ);
+	
 
 	clockevents_calc_mult_shift(&tct_clockevent, CONFIG_CPU_CLOCK, 5);
 	
@@ -165,5 +166,6 @@ void __init time_init(void)
 	if (ret)
 		printk(KERN_ERR "Failed to register clocksource: %d\n", ret);
 
+	printk("tct_ticks_per_jiffy: %lx (%d/%d)\n", tct_ticks_per_jiffy, CONFIG_CPU_CLOCK, HZ);
 	setup_irq(IRQ_TIMER0, &timer_irqaction);
 }

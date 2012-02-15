@@ -22,5 +22,4 @@
 #define IRQ_UARTTX		(1) //0x2	
 #define IRQ_TIMER0		(2) //0x4
 #define IRQ_TIMER1		(3) //0x8
-#define IRQ_TIMER2		(4) //0x10
 #endif

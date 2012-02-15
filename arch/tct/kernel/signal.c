@@ -377,9 +377,25 @@ asmlinkage int manage_signals(int retval, struct pt_regs *regs)
 asmlinkage void manage_signals_irq(struct pt_regs *regs)
 {
 	unsigned long flags;
+#if 0
+	asm volatile(
+		".word 0x18C00000	\n"
+		"movh r1, 0xdeed	\n"
+		"orr	r1, 0xbeed	\n"
+		"neq	r0, r1, r0	\n"
+		"bneq	1f		\n"
+		"halt			\n"
+		"1:			\n"
+		::: "R0", "R1"
 	
-	printk("manage_signals_irq..pt_mode=%d\n", regs->pt_mode);
-	printk("pt->elkr: 0x%8.8x\n", regs->elkr);
+	);
+	printk("%s..\n",__func__);
+#endif
+
+#if 0
+	local_irq_enable();
+#endif
+	printk("%s->r10 = %lx | elkr = %lx\n", __func__, regs->r10, regs->elkr);
 	if (regs->pt_mode == PT_MODE_KERNEL)
 		return;
 	

@@ -11,15 +11,15 @@ typedef unsigned long tct_reg_t;
 struct pt_regs {
 	tct_reg_t r0;	//4				
 	tct_reg_t r1;	//8
-	tct_reg_t r2;
-	tct_reg_t r3;
-	tct_reg_t r4;
-	tct_reg_t r5;
-	tct_reg_t r6;
-	tct_reg_t r7;
-	tct_reg_t r8;
-	tct_reg_t r9;
-	tct_reg_t r10;
+	tct_reg_t r2;	//12
+	tct_reg_t r3;	//16
+	tct_reg_t r4;	//20
+	tct_reg_t r5;	//24
+	tct_reg_t r6;	//28
+	tct_reg_t r7;	//32
+	tct_reg_t r8;	//36
+	tct_reg_t r9;	//40
+	tct_reg_t r10;	//44
 	tct_reg_t r11;
 	tct_reg_t r12;
 	tct_reg_t r13;

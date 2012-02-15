@@ -13,7 +13,7 @@ OUTPUT_FORMAT("elf32-tct")
 OUTPUT_ARCH("tct")
 ENTRY("_start")
 
-jiffies = jiffies_64 + 4;
+jiffies = jiffies_64;
 SECTIONS
 {
 	. = CONFIG_KERNEL_BASE_ADDR;

@@ -3,7 +3,7 @@
 
 #include <asm/atomic.h>
 
-#define NR_IRQS	5
+#define NR_IRQS	32
 #include <asm-generic/irq.h>
 
 #define NO_IRQ 0
@@ -14,7 +14,7 @@ static inline void tct_irq_ack(unsigned int irq)
 
 	__asm__ __volatile__(
 		"/*mfs	r3, irq*/ .word 0x1A803000	\n"
-		"not	%0, %0				\n"
+		"inv	%0, %0				\n"
 		"and	%0, %0, r3			\n"
 		"mov	r0, %0 				\n"	
 		"/*mts	irq, r0*/ .word 0x1A820000		\n": 

@@ -2,6 +2,8 @@
 
 /* Fixed-point arithmetic. */
 
+#if 0
+
 typedef unsigned long UQItype __attribute__ ((mode (QI)));
 typedef	long SItype __attribute__ ((mode (SI)));
 typedef unsigned long USItype __attribute__ ((mode (SI)));
@@ -221,3 +223,4 @@ __lshrsi3 (USItype a, USItype b)
     __asm__ ("srui     %0, %0, 1" : "=r" (a) : "0" (a));
   return a;
 }
+#endif
